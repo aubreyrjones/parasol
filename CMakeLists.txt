@@ -5,7 +5,15 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 include_directories(include)
 
-set(LIBRARY_SOURCE_FILES
-    )
 
-add_library(parasol ${LIBRARY_SOURCE_FILES})
+add_executable(lemon lemon/lemon.c)
+
+#set(LIBRARY_SOURCE_FILES)
+
+#add_library(parasol ${LIBRARY_SOURCE_FILES})
+
+set(COMPILER_SOURCE_FILES
+    prslc/ParasolPT.h
+    prslc/ParasolPT.cpp)
+
+add_executable(prslc ${COMPILER_SOURCE_FILES})
