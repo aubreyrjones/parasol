@@ -9,6 +9,7 @@
 #include <tuple>
 #include <sstream>
 #include <stdexcept>
+#include <iostream>
 
 #ifndef PARASOL_LEXER_H
 #define PARASOL_LEXER_H
@@ -35,6 +36,12 @@ typedef std::tuple<char, int> SymbolToken; /// symbol -> token value mapping
 extern SymbolToken _symbol_tokens[]; /// lookup table for symbol -> token mappings
 extern size_t _nSymbols; /// number of symbols in _symbol_tokens.
 
+
+/**
+ *
+ * Main lexer template.
+ *
+ * */
 template <class ITER = std::string::iterator>
 class Lexer {
 
@@ -49,13 +56,15 @@ protected:
 
 	void skipWhitespace() {
 		while (cur != end) {
-			switch (*cur) {
+			char c = *cur;
+			switch (c) {
 			case '\n':
 				++line;
 			case ' ':
 			case '\r':
 			case '\t':
 				++cur;
+				continue;
 			default:
 				return;
 			}
@@ -98,6 +107,7 @@ protected:
 			else {
 				break;
 			}
+
 			++cur;
 		}
 
@@ -132,10 +142,17 @@ protected:
 		}
 
 		curString.push_back(c);
+		++cur;
 
-		while (cur != end && (std::isalnum(c) || c == '_' || c == '?')) {
-			curString.push_back(c);
-			++cur;
+		while (cur != end){
+			c = *cur;
+			if (std::isalnum(c) || c == '_' || c == '?'){
+				curString.push_back(c);
+				++cur;
+			}
+			else {
+				break;
+			}
 		}
 
 		retval.tokenType = ID;
@@ -158,14 +175,14 @@ public:
 			return false;
 		}
 
-		bool gotSymbol =
+		bool gotToken =
 				nextSymbol(retval) || nextNumber(retval) || nextID(retval);
 
-		if (gotSymbol){
+		if (gotToken){
 			retval.lineNumber = line;
 		}
 
-		return gotSymbol;
+		return gotToken;
 	}
 };
 

@@ -4,7 +4,7 @@
 
 int main(int argc, char **argv){
 
-	std::string sourceCode("test {} ");
+	std::string sourceCode("foo { } ");
 
 	prsl::StringTable *strings = new prsl::StringTable;
 

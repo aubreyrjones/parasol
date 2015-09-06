@@ -30,7 +30,7 @@ scoped_var_decl ::= ID L_BRACKET var_decl R_BRACKET.
 
 var_decl ::= ID.
 var_decl ::= ID COLON ID.
-var_decl ::= ID COLON ID UINT.
+var_decl ::= ID COLON ID INT_LIT.
 
 expr ::= FLOAT_LIT.
 expr ::= INT_LIT.
