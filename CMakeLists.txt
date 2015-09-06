@@ -15,16 +15,20 @@ add_executable(lemon lemon/lemon.c)
 set(LEMON_DIR
         "${CMAKE_CURRENT_SOURCE_DIR}/lemon")
 
-add_custom_command(OUTPUT "${CMAKE_SOURCE_DIR}/prslc/prsl_grammar.c"
-        COMMAND "${CMAKE_BINARY_DIR}/lemon" "-T${LEMON_DIR}/lempar.c" "${CMAKE_SOURCE_DIR}/prslc/prsl_grammar.y"
-        DEPENDS lemon
+set(PRSLC_DIR
+    "${CMAKE_CURRENT_SOURCE_DIR}/prslc")
+
+add_custom_command(OUTPUT "${PRSLC_DIR}/prsl_grammar.c" "${PRSLC_DIR}/prsl_grammar.h" "${PRSLC_DIR}/prsl_grammar.out"
+        COMMAND "${CMAKE_BINARY_DIR}/lemon" "-T${LEMON_DIR}/lempar.c" "${PRSLC_DIR}/prsl_grammar.y"
+        DEPENDS lemon prslc/prsl_grammar.y
         VERBATIM
     )
 
 set(COMPILER_SOURCE_FILES
     prslc/ParasolPT.h
     prslc/ParasolPT.cpp
-    prslc/main.cpp
-    prslc/prsl_grammar.c)
+    prslc/main.cpp)
 
-add_executable(prslc ${COMPILER_SOURCE_FILES})
+SET_SOURCE_FILES_PROPERTIES(prslc/prsl_grammar.c PROPERTIES LANGUAGE CXX )
+
+add_executable(prslc ${COMPILER_SOURCE_FILES} "${PRSLC_DIR}/prsl_grammar.c")
