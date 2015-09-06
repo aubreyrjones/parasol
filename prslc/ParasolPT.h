@@ -132,6 +132,11 @@ struct Pipeline : public Node {
 	Ident *name;
 	NodeList *contents;
 
+	Pipeline(Ident *name, NodeList *contents) :
+			name(name),
+			contents(contents)
+	{}
+
 	virtual ~Pipeline() {
 		if (name) delete name;
 		if (contents) {

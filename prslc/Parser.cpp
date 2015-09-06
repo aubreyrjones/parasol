@@ -54,4 +54,8 @@ void Parser::error() {
 void Parser::success() {
 	std::cout << "Parse successful." << std::endl;
 }
+
+void Parser::pushAST(ast::NodeList *globals) {
+	this->globals = globals;
+}
 }

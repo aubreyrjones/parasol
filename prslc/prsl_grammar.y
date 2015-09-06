@@ -27,13 +27,19 @@ using namespace prsl::ast;
 
 %default_destructor {delete $$;}
 
-module ::= pipeline_list.
+module ::= global_list(GL).    {p->pushAST(GL);}
 
-pipeline_list ::= .
-pipeline_list ::= pipeline_list pipeline.
+%type global_list {NodeList*}
+%destructor global_list {for (auto p : *$$) delete p; delete $$;}
+global_list(G) ::= .    {G = new NodeList;}
+global_list(G) ::= global_list(GL) global_item(I).    {GL->push_back(I); G = GL;}
+
+%type global_item {Node*}
+global_item(G) ::= pipeline(P).    {G = P;}
+global_item(G) ::= function_def(F).    {G = F;}
 
 %type pipeline {Pipeline*}
-pipeline ::= id L_CURLY pipeline_contents R_CURLY.
+pipeline(P) ::= id(NAME) L_CURLY pipeline_contents(CONT) R_CURLY.    {P = new Pipeline(NAME, CONT);}
 
 %type pipeline_contents {NodeList*}
 %destructor pipeline_contents {for (auto p: *$$) delete p; delete $$;}

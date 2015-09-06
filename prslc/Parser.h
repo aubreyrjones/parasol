@@ -3,6 +3,7 @@
 //
 
 #include "Lexer.h"
+#include "ParasolPT.h"
 
 #ifndef PARASOL_PARSER_H
 #define PARASOL_PARSER_H
@@ -16,6 +17,8 @@ protected:
 	void *lemonParser; /// the opaque parser object we get from lemon's output
 
 	PRSLToken currentToken;
+
+	ast::NodeList *globals = nullptr;
 
 public:
 	Parser();
@@ -35,6 +38,8 @@ public:
 
 	void error();
 	void success();
+
+	void pushAST(ast::NodeList *globals);
 };
 
 inline std::string const& getstr(prsl::Parser *p, size_t index){
