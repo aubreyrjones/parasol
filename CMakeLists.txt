@@ -39,7 +39,7 @@ set(PRSLC_DIR
 # the build easier to describe. This can also be done offline or out of build.
 add_custom_command(OUTPUT "${PRSLC_DIR}/prsl_grammar.c" "${PRSLC_DIR}/prsl_grammar.h"
         COMMAND "${CMAKE_CURRENT_BINARY_DIR}/lemon" "-q" "-T${LEMON_DIR}/lempar.c" "${PRSLC_DIR}/prsl_grammar.y"
-        DEPENDS lemon prslc/prsl_grammar.y
+        DEPENDS lemon prslc/prsl_grammar.y prslc/Token.h
         VERBATIM)
 # it's a .c file, 'cause that's what lemon outputs. Compile it as c++ anyway, because the parser actions are
 # c++ code.
@@ -48,10 +48,15 @@ SET_SOURCE_FILES_PROPERTIES(prslc/prsl_grammar.c PROPERTIES LANGUAGE CXX)
 
 # build the compiler
 set(COMPILER_SOURCE_FILES
-    prslc/ParasolPT.h
-    prslc/ParasolPT.cpp
-    )
-add_library(prsl STATIC ${COMPILER_SOURCE_FILES} "${PRSLC_DIR}/prsl_grammar.c")
+        "${PRSLC_DIR}/prsl_grammar.c"
+        prslc/ParasolPT.h
+        prslc/ParasolPT.cpp
+        prslc/Lexer.cpp
+        prslc/Lexer.h
+        prslc/Token.cpp
+        prslc/Token.h)
+
+add_library(prsl STATIC ${COMPILER_SOURCE_FILES})
 
 add_executable(prslc prslc/main.cpp)
 target_link_libraries(prslc prsl)
