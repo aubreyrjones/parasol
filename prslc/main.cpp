@@ -1,19 +1,35 @@
 #include "Lexer.h"
 #include "Parser.h"
+#include <fstream>
+#include <iterator>
 
-#include <iostream>
+typedef std::istreambuf_iterator<char> FileCharIterator;
 
 int main(int argc, char **argv){
 
-	std::string sourceCode("foo {  } ");
+	if (argc < 2){
+		std::cout << "Need source input filename." << std::endl;
+		return 1;
+	}
 
-	prsl::Parser parser;
+	try {
+		std::ifstream sourceFile(argv[1]);
+		prsl::Parser parser;
 
-	prsl::Lexer<std::string::iterator> lexer(sourceCode.begin(), sourceCode.end(), parser.getStrings());
+		prsl::Lexer<FileCharIterator> lexer(FileCharIterator(sourceFile), FileCharIterator(), parser.getStrings());
 
-	PRSLToken token;
+		PRSLToken token;
 
-	while (lexer.next(token)){
-		parser.offerToken(token);
+		size_t tokenCount = 0;
+		while (lexer.next(token)) {
+			parser.offerToken(token);
+			tokenCount++;
+		}
+		std::cout << "Tokens parsed: " << tokenCount << std::endl;
+		parser.finish();
+	}
+	catch (prsl::ParseError &pe){
+		std::cout << pe.what() << std::endl;
+		return 2;
 	}
 }

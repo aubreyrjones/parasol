@@ -28,11 +28,13 @@ public:
 
 
 	void offerToken(PRSLToken token); /// offer the next token
+	void finish(); /// finish parsing
 	StringTable *getStrings() { return &strings; }; /// get the string table (to give to the lexer)
 
 	std::string const& getString(size_t index) { return strings.getString(index); };
 
 	void error();
+	void success();
 };
 
 inline std::string const& getstr(prsl::Parser *p, size_t index){

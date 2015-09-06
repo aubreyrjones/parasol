@@ -50,6 +50,10 @@ typedef std::tuple<const char*, int> KeywordToken;
 extern KeywordToken _keywordTokens[];
 extern size_t _nKeywords;
 
+inline bool isSpace(char const& c) {
+	return std::isblank(c) || c == '\n' || c == '\r';
+}
+
 /**
  *
  * Main lexer template.
@@ -148,7 +152,7 @@ protected:
 				if (!(sstream >> retval.value.floatValue)){
 					throw ParseError("Failed to lex float literal.");
 				}
-				retval.tokenType = FLOAT_LIT;
+				//retval.tokenType = FLOAT_LIT;
 			}
 			else {
 				if (!(sstream >> retval.value.intValue)){
@@ -171,23 +175,38 @@ protected:
 			return false; // must start with letter or underscore
 		}
 
+		std::cout << "*" << std::endl;
 		curString.push_back(c);
+		std::cout << c;
 		++cur;
 
 		while (cur != end){
 			c = *cur;
 			if (std::isalnum(c) || c == '_' || c == '?'){
 				curString.push_back(c);
+				std::cout << c;
 				++cur;
 			}
 			else {
 				break;
 			}
 		}
+		std::cout << std::endl;
+		std::cout << curString << std::endl << "****" << std::endl;
+
+		if (isSpace(*cur)){
+			skipWhitespace();
+		}
+
+		if (*cur == '['){ // scope decl
+			retval.tokenType = SCOPEREF;
+			retval.value.stringIndex = stringTable->pushString(curString);
+			return true;
+		}
 
 		// check keywords
 		for (size_t i = 0; i < _nKeywords; i++){
-			if (curString == std::get<0>(_keywordTokens[i])){
+			if (curString == std::string(std::get<0>(_keywordTokens[i]))){
 				retval.tokenType = std::get<1>(_keywordTokens[i]);
 				return true;
 			}

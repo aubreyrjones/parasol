@@ -10,7 +10,6 @@ SymbolToken _symbolTokens[] = {
 	SymbolToken(',', COMMA),
 	SymbolToken('{', L_CURLY),
 	SymbolToken('}', R_CURLY),
-	SymbolToken('[', L_BRACKET),
 	SymbolToken(']', R_BRACKET),
 	SymbolToken('{', L_CURLY)
 };

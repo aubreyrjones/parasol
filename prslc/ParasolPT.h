@@ -14,12 +14,11 @@ class FunctionDef;
 class PipelineDef;
 class Expression;
 class VarDecl;
+class Node;
 
-typedef std::list<FunctionDef*> FunctionDefList;
-typedef std::list<PipelineDef*> PipelineDefList;
 typedef std::list<VarDecl*> ParameterList;
 typedef std::list<Expression*> ArgumentList;
-
+typedef std::list<Node*> NodeList;
 
 struct Node {
 	virtual ~Node() {}
@@ -128,6 +127,24 @@ struct FunctionDef : public Node {
 		if (body) delete body;
 	}
 };
+
+struct Pipeline : public Node {
+	Ident *name;
+	NodeList *contents;
+
+	virtual ~Pipeline() {
+		if (name) delete name;
+		if (contents) {
+			for (auto p : *contents){
+				delete p;
+			}
+			delete contents;
+		}
+	}
+};
+
+
+
 
 //class Module : public Node {
 //protected:

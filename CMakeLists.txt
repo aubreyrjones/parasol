@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(parasol)
 
 # sorry folks, it's gotta be c++11. If you aren't paying me, I'm not going back!
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
 
 # this brings in our partial, headers-only subset of boost
 include_directories(include)
@@ -37,8 +37,8 @@ set(PRSLC_DIR
 
 # I add these files to the source tree so that my IDE doesn't complain about missing symbols, and to make
 # the build easier to describe. This can also be done offline or out of build.
-add_custom_command(OUTPUT "${PRSLC_DIR}/prsl_grammar.c" "${PRSLC_DIR}/prsl_grammar.h"
-        COMMAND "${CMAKE_CURRENT_BINARY_DIR}/lemon" "-q" "-T${LEMON_DIR}/lempar.c" "${PRSLC_DIR}/prsl_grammar.y"
+add_custom_command(OUTPUT "${PRSLC_DIR}/prsl_grammar.c" "${PRSLC_DIR}/prsl_grammar.h" "${PRSLC_DIR}/prsl_grammar.out"
+        COMMAND "${CMAKE_CURRENT_BINARY_DIR}/lemon" "-T${LEMON_DIR}/lempar.c" "${PRSLC_DIR}/prsl_grammar.y"
         DEPENDS lemon prslc/prsl_grammar.y prslc/Token.h
         VERBATIM)
 # it's a .c file, 'cause that's what lemon outputs. Compile it as c++ anyway, because the parser actions are
