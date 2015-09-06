@@ -11,7 +11,9 @@ SymbolToken _symbolTokens[] = {
 	SymbolToken('{', L_CURLY),
 	SymbolToken('}', R_CURLY),
 	SymbolToken(']', R_BRACKET),
-	SymbolToken('{', L_CURLY)
+	SymbolToken('(', L_PAREN),
+	SymbolToken(')', R_PAREN),
+	SymbolToken(':', COLON)
 };
 size_t _nSymbols = sizeof(_symbolTokens) / sizeof(SymbolToken);
 

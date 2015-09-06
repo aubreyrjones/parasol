@@ -22,11 +22,15 @@ int main(int argc, char **argv){
 
 		size_t tokenCount = 0;
 		while (lexer.next(token)) {
+			std::cout << token.tokenType << " ";
 			parser.offerToken(token);
 			tokenCount++;
+			if (lexer.atEnd()){
+				break; // end of input
+			}
 		}
+
 		std::cout << "Tokens parsed: " << tokenCount << std::endl;
-		parser.finish();
 	}
 	catch (prsl::ParseError &pe){
 		std::cout << pe.what() << std::endl;

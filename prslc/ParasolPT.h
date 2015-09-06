@@ -148,17 +148,6 @@ struct Pipeline : public Node {
 	}
 };
 
-
-
-
-//class Module : public Node {
-//protected:
-//	std::string moduleName {""}; /// name of this module, defaults to ""
-//	PipelineDefList memberPipelines; /// the pipeline members of this module.
-//	FunctionDefList memberFunctions; /// the functions that are global members of this module
-//};
-
-
 }} // namespace
 
 #endif //PARASOL_PARASOLPT_H

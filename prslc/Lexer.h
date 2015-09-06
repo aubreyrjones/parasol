@@ -64,6 +64,7 @@ class Lexer {
 
 protected:
 	ITER cur;
+	char c;
 	ITER end;
 
 	size_t currentLine = 1;
@@ -71,16 +72,21 @@ protected:
 	std::string curString;
 	StringTable *stringTable;
 
+
+	void advance() {
+		++cur;
+		c = *cur;
+	}
+
 	void skipWhitespace() {
 		while (cur != end) {
-			char c = *cur;
 			switch (c) {
 			case '\n':
 				++currentLine;
 			case ' ':
 			case '\r':
 			case '\t':
-				++cur;
+				advance();
 				continue;
 			default:
 				return;
@@ -91,25 +97,27 @@ protected:
 	bool nextSymbol(PRSLToken & retval) {
 		// check digraphs
 		for (size_t i = 0; i < _nDigraphs; i++){
-			if (*cur == std::get<0>(_digraphTokens[i])){
-				++cur;
+			if (c == std::get<0>(_digraphTokens[i])){
+				advance();
 
-				if (*cur == std::get<2>(_digraphTokens[i])){
-					++cur;
+				if (c == std::get<2>(_digraphTokens[i])){
+					advance();
 					retval.tokenType = std::get<3>(_digraphTokens[i]);
-					return true;
 				}
 				else {
 					retval.tokenType = std::get<1>(_digraphTokens[i]);
+					// already consumed the token above
 				}
+
+				return true;
 			}
 		}
 
 		// check monographs (is that it? or unigraph? who cares?)
 		for (size_t i = 0; i < _nSymbols; i++){
-			if (*cur == std::get<0>(_symbolTokens[i])){
+			if (c == std::get<0>(_symbolTokens[i])){
 				retval.tokenType = std::get<1>(_symbolTokens[i]);
-				++cur;
+				advance();
 				return true;
 			}
 		}
@@ -123,26 +131,25 @@ protected:
 		bool isNegative = false;
 		bool isFloat = false;
 
-		if (*cur == '-'){
+		if (c == '-'){
 			isNegative = true;
-			curString.push_back(*cur);
-			++cur;
+			curString.push_back(c);
+			advance();
 		}
 
 		while (cur != end) {
-			char c = *cur;
 			if (c == '.' && !isFloat) { // only one . allowed.
 				isFloat = true;
 				curString.push_back(c);
 			}
-			else if (c > '0' && c < '9') {
+			else if (std::isdigit(c)) {
 				curString.push_back(c);
 			}
 			else {
 				break;
 			}
 
-			++cur;
+			advance();
 		}
 
 		std::istringstream sstream(curString);
@@ -152,7 +159,7 @@ protected:
 				if (!(sstream >> retval.value.floatValue)){
 					throw ParseError("Failed to lex float literal.");
 				}
-				//retval.tokenType = FLOAT_LIT;
+				retval.tokenType = FLOAT_LIT;
 			}
 			else {
 				if (!(sstream >> retval.value.intValue)){
@@ -169,38 +176,32 @@ protected:
 	bool nextID(PRSLToken & retval) {
 		curString.clear();
 
-		char c = *cur;
-
 		if (!(std::isalpha(c) || c == '_')){
 			return false; // must start with letter or underscore
 		}
 
-		std::cout << "*" << std::endl;
 		curString.push_back(c);
-		std::cout << c;
-		++cur;
+		advance();
 
 		while (cur != end){
-			c = *cur;
+			c = c;
 			if (std::isalnum(c) || c == '_' || c == '?'){
 				curString.push_back(c);
-				std::cout << c;
-				++cur;
+				advance();
 			}
 			else {
 				break;
 			}
 		}
-		std::cout << std::endl;
-		std::cout << curString << std::endl << "****" << std::endl;
 
-		if (isSpace(*cur)){
+		if (isSpace(c)){
 			skipWhitespace();
 		}
 
-		if (*cur == '['){ // scope decl
+		if (c == '['){ // scope decl
 			retval.tokenType = SCOPEREF;
 			retval.value.stringIndex = stringTable->pushString(curString);
+			advance();
 			return true;
 		}
 
@@ -222,18 +223,23 @@ public:
 			cur(start),
 			end(end),
 			stringTable(stringTable)
-	{}
+	{
+		c = *cur;
+	}
 
 
 	bool next(PRSLToken & retval) {
 		skipWhitespace();
 
+		bool gotToken = false;
 		if (cur == end){
-			return false;
+			retval.tokenType = 0;
+			retval.lineNumber = currentLine;
+			gotToken = true;
 		}
-
-		bool gotToken =
-				nextSymbol(retval) || nextNumber(retval) || nextID(retval);
+		else {
+			gotToken = nextSymbol(retval) || nextNumber(retval) || nextID(retval);
+		}
 
 		if (gotToken){
 			retval.lineNumber = currentLine;
@@ -241,6 +247,8 @@ public:
 
 		return gotToken;
 	}
+
+	bool atEnd() { return cur == end; }
 };
 
 }

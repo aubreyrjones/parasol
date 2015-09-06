@@ -38,9 +38,9 @@ void Parser::error() {
 	case INT_LIT:
 		std::cout << " Value: " << currentToken.value.intValue;
 		break;
-	//case FLOAT_LIT:
-//		std::cout << " Value: " << currentToken.value.floatValue;
-//		break;
+	case FLOAT_LIT:
+		std::cout << " Value: " << currentToken.value.floatValue;
+		break;
 	case ID:
 		std::cout << " Value: " << getString(currentToken.value.stringIndex);
 		break;
@@ -49,6 +49,8 @@ void Parser::error() {
 	}
 
 	std::cout << std::endl;
+
+	throw ParseError("Parse error.");
 }
 
 void Parser::success() {
