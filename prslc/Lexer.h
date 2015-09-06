@@ -22,6 +22,7 @@ public:
 	using std::runtime_error::runtime_error;
 };
 
+/** Used to intern strings found by the lexer. */
 class StringTable {
 protected:
 	std::vector<std::string> strings;
@@ -36,8 +37,8 @@ public:
 	std::string const& getString(size_t index); // get a string
 };
 
-typedef std::tuple<char, int> SymbolToken; /// symbol -> token value mapping
 
+typedef std::tuple<char, int> SymbolToken; /// symbol -> token value mapping
 extern SymbolToken _symbol_tokens[]; /// lookup table for symbol -> token mappings
 extern size_t _nSymbols; /// number of symbols in _symbol_tokens.
 
@@ -54,7 +55,7 @@ protected:
 	ITER cur;
 	ITER end;
 
-	size_t currentLine = 0;
+	size_t currentLine = 1;
 
 	std::string curString;
 	StringTable *stringTable;
@@ -77,6 +78,21 @@ protected:
 	}
 
 	bool nextSymbol(PRSLToken & retval) {
+
+		if (*cur == '_'){ // handle di-graphs
+			++cur;
+			if (*cur == '>'){
+				retval.tokenType = GOESTO;
+				++cur;
+				return true;
+			}
+			else {
+				retval.tokenType = EQUALS;
+				// don't consume the next char
+				return true;
+			}
+		}
+
 		for (size_t i = 0; i < _nSymbols; i++){
 			if (*cur == std::get<0>(_symbol_tokens[i])){
 				retval.tokenType = std::get<1>(_symbol_tokens[i]);
