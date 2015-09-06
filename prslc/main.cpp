@@ -5,7 +5,7 @@
 
 int main(int argc, char **argv){
 
-	std::string sourceCode("foo { x = y } ");
+	std::string sourceCode("foo {  } ");
 
 	prsl::Parser parser;
 

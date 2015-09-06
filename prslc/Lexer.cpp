@@ -6,16 +6,25 @@
 
 namespace prsl {
 
-SymbolToken _symbol_tokens[] = {
+SymbolToken _symbolTokens[] = {
+	SymbolToken(',', COMMA),
 	SymbolToken('{', L_CURLY),
 	SymbolToken('}', R_CURLY),
 	SymbolToken('[', L_BRACKET),
 	SymbolToken(']', R_BRACKET),
-	SymbolToken('{', L_CURLY),
-	SymbolToken('=', EQUALS),
-	SymbolToken(',', COMMA)
+	SymbolToken('{', L_CURLY)
 };
-size_t _nSymbols = sizeof(_symbol_tokens) / sizeof(SymbolToken);
+size_t _nSymbols = sizeof(_symbolTokens) / sizeof(SymbolToken);
+
+DigraphToken _digraphTokens[] = {
+	DigraphToken('=', EQUALS, '>', GOESTO)
+};
+size_t _nDigraphs = sizeof(_digraphTokens) / sizeof(DigraphToken);
+
+KeywordToken _keywordTokens[] = {
+	KeywordToken("def", DEF)
+};
+size_t _nKeywords = sizeof(_keywordTokens) / sizeof(KeywordToken);
 
 size_t StringTable::pushString(std::string const &s) {
 	PrevMap::iterator it = previousLocations.find(s);

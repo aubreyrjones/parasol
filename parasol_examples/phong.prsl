@@ -15,15 +15,16 @@ struct point_light {
   color: vec4
 }
 
-def L lightPos: vec3, fragPos: vec3 =>
-  normalize(lightPos - fragPos)
-
 phong_lighting {  
   v[v_color] = a[v_inColor: vec4]
 
   u[point_lights.16: point_light]    // declares an array of size 16
   v[!v_normal: vec3]
   v[!v_pos: vec3]
+
+
+  def L lightPos: vec3, fragPos: vec3 =>    // no stage scope for L, simple expression function
+    normalize(lightPos - fragPos)
 
   def f[pointLightContrib] light =>    // since pointLightContrib has f-stage scope...
     light.color * max(0, v_normal ` L(light.position, v_pos))    // ... it closes over the fragment inputs.

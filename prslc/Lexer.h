@@ -38,10 +38,17 @@ public:
 };
 
 
-typedef std::tuple<char, int> SymbolToken; /// symbol -> token value mapping
-extern SymbolToken _symbol_tokens[]; /// lookup table for symbol -> token mappings
-extern size_t _nSymbols; /// number of symbols in _symbol_tokens.
+typedef std::tuple<char, int> SymbolToken;
+extern SymbolToken _symbolTokens[];
+extern size_t _nSymbols;
 
+typedef std::tuple<char, int, char, int> DigraphToken;
+extern DigraphToken _digraphTokens[];
+extern size_t _nDigraphs;
+
+typedef std::tuple<const char*, int> KeywordToken;
+extern KeywordToken _keywordTokens[];
+extern size_t _nKeywords;
 
 /**
  *
@@ -78,24 +85,26 @@ protected:
 	}
 
 	bool nextSymbol(PRSLToken & retval) {
-
-		if (*cur == '_'){ // handle di-graphs
-			++cur;
-			if (*cur == '>'){
-				retval.tokenType = GOESTO;
+		// check digraphs
+		for (size_t i = 0; i < _nDigraphs; i++){
+			if (*cur == std::get<0>(_digraphTokens[i])){
 				++cur;
-				return true;
-			}
-			else {
-				retval.tokenType = EQUALS;
-				// don't consume the next char
-				return true;
+
+				if (*cur == std::get<2>(_digraphTokens[i])){
+					++cur;
+					retval.tokenType = std::get<3>(_digraphTokens[i]);
+					return true;
+				}
+				else {
+					retval.tokenType = std::get<1>(_digraphTokens[i]);
+				}
 			}
 		}
 
+		// check monographs (is that it? or unigraph? who cares?)
 		for (size_t i = 0; i < _nSymbols; i++){
-			if (*cur == std::get<0>(_symbol_tokens[i])){
-				retval.tokenType = std::get<1>(_symbol_tokens[i]);
+			if (*cur == std::get<0>(_symbolTokens[i])){
+				retval.tokenType = std::get<1>(_symbolTokens[i]);
 				++cur;
 				return true;
 			}
@@ -173,6 +182,14 @@ protected:
 			}
 			else {
 				break;
+			}
+		}
+
+		// check keywords
+		for (size_t i = 0; i < _nKeywords; i++){
+			if (curString == std::get<0>(_keywordTokens[i])){
+				retval.tokenType = std::get<1>(_keywordTokens[i]);
+				return true;
 			}
 		}
 
