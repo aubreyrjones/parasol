@@ -11,6 +11,7 @@
 // not in a namespace for compatibility with Lemon.
 
 namespace prsl {
+
 class StringTable; // forward declaration of string table.
 }
 

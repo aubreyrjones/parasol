@@ -54,7 +54,7 @@ set(COMPILER_SOURCE_FILES
         prslc/Lexer.cpp
         prslc/Lexer.h
         prslc/Token.cpp
-        prslc/Token.h)
+        prslc/Token.h prslc/Parser.cpp prslc/Parser.h)
 
 add_library(prsl STATIC ${COMPILER_SOURCE_FILES})
 

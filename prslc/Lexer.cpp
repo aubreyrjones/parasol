@@ -16,8 +16,17 @@ SymbolToken _symbol_tokens[] = {
 size_t _nSymbols = sizeof(_symbol_tokens) / sizeof(SymbolToken);
 
 size_t StringTable::pushString(std::string const &s) {
+	PrevMap::iterator it = previousLocations.find(s);
+	if (it != previousLocations.end()){
+		return (*it).second;
+	}
+
+	size_t idx = strings.size();
+	previousLocations.emplace(s, idx);
+
 	strings.push_back(s);
-	return strings.size() - 1;
+
+	return idx;
 }
 
 

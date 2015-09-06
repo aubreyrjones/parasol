@@ -10,6 +10,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <iostream>
+#include <unordered_map>
 
 #ifndef PARASOL_LEXER_H
 #define PARASOL_LEXER_H
@@ -24,6 +25,10 @@ public:
 class StringTable {
 protected:
 	std::vector<std::string> strings;
+
+	typedef std::unordered_map<std::string, size_t> PrevMap;
+
+	PrevMap previousLocations;
 
 public:
 	size_t pushString(std::string const& s);  // add a string to the table
@@ -49,7 +54,7 @@ protected:
 	ITER cur;
 	ITER end;
 
-	size_t line = 0;
+	size_t currentLine = 0;
 
 	std::string curString;
 	StringTable *stringTable;
@@ -59,7 +64,7 @@ protected:
 			char c = *cur;
 			switch (c) {
 			case '\n':
-				++line;
+				++currentLine;
 			case ' ':
 			case '\r':
 			case '\t':
@@ -179,7 +184,7 @@ public:
 				nextSymbol(retval) || nextNumber(retval) || nextID(retval);
 
 		if (gotToken){
-			retval.lineNumber = line;
+			retval.lineNumber = currentLine;
 		}
 
 		return gotToken;

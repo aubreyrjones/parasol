@@ -1,13 +1,15 @@
 %token_type {PRSLToken}
+%extra_argument { prsl::Parser *p }
 
 %include {
 #include <stdio.h>
 #include <assert.h>
 #include "Token.h"
+#include "Parser.h"
 }
 
 %syntax_error {
-  printf("Syntax error.\n");
+  p->error();
 }
 
 module ::= pipeline_list.
