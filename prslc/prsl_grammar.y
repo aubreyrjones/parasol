@@ -74,14 +74,14 @@ param_list(P) ::= param_list(PL) COMMA var_decl(V).    {PL->push_back(V); P = PL
 // expressions... which is most of the language
 %type expr {Expression*}
 
-%nonassoc EQUALS.
+%left EQUALS.
 %left PLUS MINUS.
 %left MULT DIV CROSS DOT.
 %right NOT DEF.
 
 // declarative expressions
 expr(E)  ::= scoped_var_decl(V).    {E = V;}
-expr  ::= scoped_var_decl EQUALS expr.
+expr(E)  ::= scoped_var_decl(L) EQUALS expr(R).    {E = new BinaryOp(EQUALS, L, R);}
 
 
 %type scoped_var_decl {VarDecl*}
