@@ -42,7 +42,9 @@ KeywordToken _keywordTokens[] = {
 	KeywordToken("def", DEF),
 	KeywordToken("let", LET),
 	KeywordToken("in", IN),
-	KeywordToken("struct", STRUCT)
+	KeywordToken("struct", STRUCT),
+	KeywordToken("include", INCLUDE),
+	KeywordToken("as", AS)
 };
 size_t _nKeywords = sizeof(_keywordTokens) / sizeof(KeywordToken);
 

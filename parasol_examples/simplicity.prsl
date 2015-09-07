@@ -1,0 +1,57 @@
+; Here's a complete Parasol pipeline fulfilling the OpenGL vertex and fragment shader
+; contract. If you're doing something simple, your shader could be a few lines long.
+vert_color_complete {
+  v[gl_Position] =    ; define gl_Position in the 'v' (for vertex) stage.
+    u[projMatrix: mat4] *    ; here's a uniform matrix
+    u[viewMatrix: mat4] *    ; here's another
+    u[modelMatrix: mat4] *   ; you'll query their indices later
+    vec4(a[v_inPosition: vec3 0], 1)    ; this declares a vertex attribute, its type, and its attribute index
+
+  f[fragColor: 0] =    ; the fragment color is equal to the interpolated...
+    v[v_color] =    ; ...output of the vertex stage
+      vec4(a[v_inColor: vec3 1], 1)    ; which is determined by an attribute, indexed 1
+}
+
+
+; But I don't want to rewrite the same vertex position multiply in every pipeline.
+; Let's make it modular.
+vertex_pos {
+  v[gl_Position] =
+    u[projMatrix: mat4] *
+    u[viewMatrix: mat4] *
+    u[modelMatrix: mat4] *
+    vec4(a[v_inPosition: vec3], 1)    ; note that we don't declare the index this time!
+}
+
+
+; Here's a basic normal calculation.
+vertex_normal {
+  v[v_normal] = normalize(u[normalMatrix: mat3] * a[v_inNormal: vec3])
+}
+
+
+; This isn't very good art, but here's a little non-linear toon shader.
+bad_toon_shader {
+  include vertex_position    ; so that takes care of that
+  include vertex_normal      ; ... and that.
+
+  a[v_inPosition: 0]    ; and there's our attribute index
+  a[v_inNormal: 1]    ; and the other one
+  u[lightDir: vec3]    ; a new uniform
+
+  v[v_color] = a[v_inColor: vec3 2]
+
+  f[outColor: 0] = 
+    let 
+      ldot = abs(dot(v_normal, lightDir))
+    in
+      v_color * 
+               {ldot < 0.25 => 0.15
+                ldot >= 0.25 && ldot < 0.5 => 0.65
+                _ => 1}
+}
+
+
+
+
+

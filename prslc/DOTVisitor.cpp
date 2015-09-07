@@ -83,7 +83,10 @@ size_t DOTVisitor::dotify(Node *root) {
 		out << "&Psi;";
 	}
 	else if (nType == 'strt') {
-		out << "\\{" << static_cast<StructDef*>(root)->name->value << "\\}";
+		out << "\\{" << static_cast<StructDef *>(root)->name->value << "\\}";
+	}
+	else if (nType == 'incl') {
+		out << static_cast<IncludeDecl*>(root)->toString();
 	}
 	else {
 		printNodeType(root->type());
@@ -94,8 +97,12 @@ size_t DOTVisitor::dotify(Node *root) {
 
 	if (nType == '_mod'){
 		auto mod = static_cast<Module*>(root);
-		for (Node* n : *mod->globalDecls){
-			dotAndLink(thisIdx, n);
+
+		if (mod->globalDecls) {
+			for (Node *n : *mod->globalDecls) {
+				//dotAndLink(thisIdx, n);
+				if (n) dotify(n);
+			}
 		}
 	}
 	else if (nType == 'pipe'){

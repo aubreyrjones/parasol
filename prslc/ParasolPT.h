@@ -305,6 +305,33 @@ struct Let : public Expression {
 	virtual NodeType type() { return '_let'; }
 };
 
+struct IncludeDecl : public Node {
+	Ident *includedPipeline = nullptr;
+	Ident *asName = nullptr;
+
+	IncludeDecl(Ident *toInclude, Ident *as) :
+			includedPipeline(toInclude),
+			asName(as)
+	{}
+
+	virtual ~IncludeDecl() {
+		if (includedPipeline) delete includedPipeline;
+		if (asName) delete asName;
+	}
+
+	virtual NodeType type() { return 'incl'; }
+
+	std::string toString() {
+		std::stringstream out;
+		out << "include " << includedPipeline->value;
+		if (asName) {
+			out << " as " << asName->value;
+		}
+
+		return out.str();
+	}
+};
+
 struct Pipeline : public Node {
 	Ident *name = nullptr;
 	NodeList *contents = nullptr;

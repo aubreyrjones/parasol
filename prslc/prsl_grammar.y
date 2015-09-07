@@ -58,6 +58,7 @@ pipeline_item(PI) ::= function_def(F).    {PI = F;}
 pipeline_item(PI) ::= var_decl(E).    {PI = E;}
 pipeline_item(PI) ::= scoped_var_decl(E).    {PI = E;}
 pipeline_item(PI) ::= assignment_expr(E).    {PI = E;}
+pipeline_item(PI) ::= include_decl(I).    {PI = I;}
 
 
 %type function_def {FunctionDef*}
@@ -83,6 +84,10 @@ struct_def(S) ::= STRUCT id(N) L_CURLY struct_contents(M) R_CURLY.    {S = new S
 struct_contents(SC) ::= .    {SC = new NodeList;}
 struct_contents(S) ::= struct_contents(SC) var_decl(V).    {SC->push_back(V); S = SC;}
 
+
+%type include_decl {IncludeDecl*}
+include_decl(I) ::= INCLUDE id(P).    {I = new IncludeDecl(P, nullptr);}
+include_decl(I) ::= INCLUDE id(P) AS id(A).    {I = new IncludeDecl(P, A);}
 
 
 // expressions... which is most of the language
