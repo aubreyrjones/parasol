@@ -75,12 +75,13 @@ param_list(P) ::= param_list(PL) COMMA var_decl(V).    {PL->push_back(V); P = PL
 
 // expressions... which is most of the language
 %type expr {Expression*}
-
-%left COMMA.
+%right LAMBDA.
+%left GOESTO.
+%left COMMA FNCALL.
 %left EQUALS.
 %left PLUS MINUS.
 %left MULT DIV CROSS DOT.
-%right NOT ELSE LAMBDA.
+%right NOT ELSE.
 
 // declarative expressions
 expr(E)  ::= scoped_var_decl(V).    {E = V;}
@@ -118,8 +119,20 @@ expr(E) ::= expr(L) DOT expr(R).    {E = new BinaryOp(DOT, L, R);}
 expr(E) ::= NOT expr(I).    {E = new UnaryOp(NOT, I);}
 expr(E) ::= MINUS expr(I). [NOT]    {E = new UnaryOp(MINUS, I);}
 expr(E) ::= L_PAREN expr(I) R_PAREN.    {E = I;}
-expr(E) ::= IF L_PAREN expr(C) R_PAREN expr(TH) ELSE expr(EL).    {E = new IfExpr(C, TH, EL);}
+//expr(E) ::= IF expr(C) THEN expr(TH) ELSE expr(EL).    {E = new IfExpr(C, TH, EL);}
+expr(E) ::= case_set(CS).    {E = CS;}
 expr(E) ::= lambda_def(L).    {E = L;}
+
+
+%type case_set {CaseSet*}
+case_set(CS) ::= L_CURLY case_list(CL) R_CURLY.    {CS = new CaseSet(CL);}
+
+%type case_list {CaseList*}
+case_list(CL) ::= .    {CL = new CaseList;}
+case_list(C) ::= case_list(CL) case(CS).    {CL->push_back(CS); C = CL;}
+
+%type case {Case*}
+case(C) ::= expr(COND) GOESTO expr(R).    {C = new Case(COND, R);}
 
 %type assignment_expr {Expression*}
 assignment_expr(E) ::= var_decl(L) EQUALS expr(R).    {E = new BinaryOp(EQUALS, L, R);}

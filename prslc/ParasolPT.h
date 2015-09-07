@@ -17,10 +17,12 @@ class PipelineDef;
 class Expression;
 class VarDecl;
 class Node;
+class Case;
 
 typedef std::vector<VarDecl*> ParameterList;
 typedef std::vector<Expression*> ArgumentList;
 typedef std::vector<Node*> NodeList;
+typedef std::vector<Case*> CaseList;
 
 typedef uint32_t NodeType;
 
@@ -250,6 +252,40 @@ struct Lambda : public Expression {
 	}
 
 	virtual NodeType type() { return 'lmbd'; }
+};
+
+struct Case : public Node {
+	Expression *condition = nullptr;
+	Expression *result = nullptr;
+
+	Case(Expression *cond, Expression *res) :
+			condition(cond),
+			result(res)
+	{}
+
+	virtual ~Case() {
+		if (condition) delete condition;
+		if (result) delete result;
+	}
+
+	virtual NodeType type() { return 'case'; }
+};
+
+struct CaseSet : public Expression {
+	CaseList *cases = nullptr;
+
+	CaseSet(CaseList *cases) : cases(cases) {}
+
+	virtual ~CaseSet(){
+		if (cases){
+			for (Case *c : *cases){
+				delete c;
+			}
+			delete cases;
+		}
+	}
+
+	virtual NodeType type() { return 'csst'; }
 };
 
 struct Pipeline : public Node {

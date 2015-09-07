@@ -61,6 +61,9 @@ size_t DOTVisitor::dotify(Node *root) {
 		std::string formattedParams = formatParameterList(static_cast<Lambda *>(root)->parameters);
 		out << "&lambda;" << formattedParams;
 	}
+	else if (nType == 'csst') {
+		out << "?";
+	}
 	else {
 		printNodeType(root->type());
 	}
@@ -108,6 +111,19 @@ size_t DOTVisitor::dotify(Node *root) {
 	else if (nType == 'lmbd'){
 		auto lambda = static_cast<Lambda*>(root);
 		dotAndLink(thisIdx, lambda->body);
+	}
+	else if (nType == 'csst'){
+		auto cases = static_cast<CaseSet*>(root);
+
+		for (Node *n : *(cases->cases)){
+			dotAndLink(thisIdx, n);
+		}
+	}
+	else if (nType == 'case'){
+		auto case_ = static_cast<Case*>(root);
+
+		dotAndLink(thisIdx, case_->condition);
+		dotAndLink(thisIdx, case_->result);
 	}
 
 	return thisIdx;
