@@ -79,8 +79,13 @@ param_list(P) ::= param_list(PL) COMMA var_decl(V).    {PL->push_back(V); P = PL
 %left GOESTO.
 %left COMMA FNCALL.
 %left EQUALS.
+%left L_AND L_OR.
+%left B_AND B_OR.
+%left LESS LESS_EQ GREATER GREATER_EQ.
+%left EQ NOT_EQ.
 %left PLUS MINUS.
 %left MULT DIV CROSS DOT.
+%left SWIZZLE.
 %right NOT ELSE.
 
 // declarative expressions
@@ -122,6 +127,22 @@ expr(E) ::= L_PAREN expr(I) R_PAREN.    {E = I;}
 expr(E) ::= let_expr(I).    {E = I;}
 expr(E) ::= case_set(CS).    {E = CS;}
 expr(E) ::= lambda_def(L).    {E = L;}
+expr(E) ::= expr(L) SWIZZLE expr(R).    {E = new BinaryOp(SWIZZLE, L, R);}
+
+expr(E) ::= expr(L) L_AND expr(R).    {E = new BinaryOp(L_AND, L, R);}
+expr(E) ::= expr(L) L_OR expr(R).    {E = new BinaryOp(L_OR, L, R);}
+
+expr(E) ::= expr(L) B_AND expr(R).    {E = new BinaryOp(B_AND, L, R);}
+expr(E) ::= expr(L) B_OR expr(R).    {E = new BinaryOp(B_OR, L, R);}
+
+expr(E) ::= expr(L) LESS expr(R).    {E = new BinaryOp(LESS, L, R);}
+expr(E) ::= expr(L) LESS_EQ expr(R).    {E = new BinaryOp(LESS_EQ, L, R);}
+
+expr(E) ::= expr(L) GREATER expr(R).    {E = new BinaryOp(GREATER, L, R);}
+expr(E) ::= expr(L) GREATER_EQ expr(R).    {E = new BinaryOp(GREATER_EQ, L, R);}
+
+expr(E) ::= expr(L) EQ expr(R).    {E = new BinaryOp(EQ, L, R);}
+expr(E) ::= expr(L) NOT_EQ expr(R).    {E = new BinaryOp(NOT_EQ, L, R);}
 
 %type let_expr {Let*}
 let_expr(L) ::= LET unscoped_assignment_list(AL) IN expr(E).    {L = new Let(AL, E);}

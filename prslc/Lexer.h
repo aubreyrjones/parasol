@@ -11,11 +11,14 @@
 #include <stdexcept>
 #include <iostream>
 #include <unordered_map>
+#include <tinyformat.h>
 
 #ifndef PARASOL_LEXER_H
 #define PARASOL_LEXER_H
 
 namespace prsl {
+
+using std::get;
 
 class ParseError : public std::runtime_error {
 public:
@@ -99,32 +102,39 @@ protected:
 	bool nextSymbol(PRSLToken & retval) {
 		// check digraphs
 		for (size_t i = 0; i < _nDigraphs; i++){
-			if (c == std::get<0>(_digraphTokens[i])){
+			if (c == get<0>(_digraphTokens[i])){
+				DigraphToken &firstTok = _digraphTokens[i];
+
+				char ch = c;
 				advance();
 
-				if (c == std::get<2>(_digraphTokens[i])){
-					advance();
-					retval.tokenType = std::get<3>(_digraphTokens[i]);
-				}
-				else {
-					retval.tokenType = std::get<1>(_digraphTokens[i]);
-					// already consumed the token above
+				for (; i < _nDigraphs; i++){ // using the same i!
+					if (c == get<2>(_digraphTokens[i])){
+						retval.tokenType = get<3>(_digraphTokens[i]);
+						advance();
+						return true;
+					}
 				}
 
+				retval.tokenType = get<1>(firstTok);
 				return true;
 			}
 		}
 
 		// check monographs (is that it? or unigraph? who cares?)
 		for (size_t i = 0; i < _nSymbols; i++){
-			if (c == std::get<0>(_symbolTokens[i])){
-				retval.tokenType = std::get<1>(_symbolTokens[i]);
+			if (c == get<0>(_symbolTokens[i])){
+				retval.tokenType = get<1>(_symbolTokens[i]);
 				advance();
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	bool isIDChar(char ch) {
+		return std::isalnum(ch) || ch == '_' || ch == '?';
 	}
 
 	bool nextNumber(PRSLToken & retval) {
@@ -154,9 +164,18 @@ protected:
 			advance();
 		}
 
-		std::istringstream sstream(curString);
-
 		if (curString.size() > 0){
+			std::istringstream sstream(curString);
+
+			if (isIDChar(c)){
+				// basically, this guards against "22.rgb" being lexed as 22(floating) and then rgb.
+				// but pushing a swizzle is also ambiguous. Best just to ask them to parenthesize or space.
+				// which results in parsing as two separate expressions.
+				// It usually winds up declaring linking variables in your pipelines.
+				// I can think of no circumstance in which this is what you want.
+				throw ParseError(tfm::format("You seem to have some identifier in your numeric literal on line %d. Do you need a paren or a space?", currentLine));
+			}
+
 			if (isFloat){
 				if (!(sstream >> retval.value.floatValue)){
 					throw ParseError("Failed to lex float literal.");
@@ -169,6 +188,7 @@ protected:
 				}
 				retval.tokenType = INT_LIT;
 			}
+
 			return true;
 		}
 
@@ -186,7 +206,7 @@ protected:
 		advance();
 
 		while (cur != end){
-			if (std::isalnum(c) || c == '_' || c == '?'){
+			if (isIDChar(c)){
 				curString.push_back(c);
 				advance();
 			}
@@ -206,8 +226,8 @@ protected:
 
 		// check keywords
 		for (size_t i = 0; i < _nKeywords; i++){
-			if (curString == std::string(std::get<0>(_keywordTokens[i]))){
-				retval.tokenType = std::get<1>(_keywordTokens[i]);
+			if (curString == std::string(get<0>(_keywordTokens[i]))){
+				retval.tokenType = get<1>(_keywordTokens[i]);
 				return true;
 			}
 		}

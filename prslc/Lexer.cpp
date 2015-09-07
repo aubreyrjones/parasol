@@ -6,6 +6,8 @@
 
 namespace prsl {
 
+using std::get;
+
 SymbolToken _symbolTokens[] = {
 	SymbolToken(',', COMMA),
 	SymbolToken('{', L_CURLY),
@@ -20,13 +22,19 @@ SymbolToken _symbolTokens[] = {
 	SymbolToken('/', DIV),
 	SymbolToken('%', CROSS),
 	SymbolToken('`', DOT),
-	SymbolToken('~', NOT),
-	SymbolToken('\\', LAMBDA)
+	SymbolToken('\\', LAMBDA),
+	SymbolToken('.', SWIZZLE)
 };
 size_t _nSymbols = sizeof(_symbolTokens) / sizeof(SymbolToken);
 
 DigraphToken _digraphTokens[] = {
-	DigraphToken('=', EQUALS, '>', GOESTO)
+	DigraphToken('=', EQUALS, '>', GOESTO),
+	DigraphToken('=', EQUALS, '=', EQ),
+	DigraphToken('&', B_AND, '&', L_AND),
+	DigraphToken('|', B_OR, '|', L_OR),
+	DigraphToken('!', NOT, '=', NOT_EQ),
+	DigraphToken('<', LESS, '=', LESS_EQ),
+	DigraphToken('>', GREATER, '=', GREATER_EQ)
 };
 size_t _nDigraphs = sizeof(_digraphTokens) / sizeof(DigraphToken);
 
@@ -60,26 +68,27 @@ std::string lookupToken(int token) {
 	std::string retval;
 
 	for (size_t i = 0; i < _nSymbols; i++){
-		if (token == std::get<1>(_symbolTokens[i])){
-			retval.push_back(std::get<0>(_symbolTokens[i]));
+		if (token == get<1>(_symbolTokens[i])){
+			retval.push_back(get<0>(_symbolTokens[i]));
 			return retval;
 		}
 	}
 
 	for (size_t i = 0; i < _nDigraphs; i++){
-		if (token == std::get<1>(_digraphTokens[i])){
-			retval.push_back(std::get<0>(_digraphTokens[i]));
+		if (token == get<1>(_digraphTokens[i])){
+			retval.push_back(get<0>(_digraphTokens[i]));
 			return retval;
 		}
-		else if (token == std::get<3>(_digraphTokens[i])){
-			retval.push_back(std::get<0>(_digraphTokens[i]));
-			retval.push_back(std::get<1>(_digraphTokens[i]));
+		else if (token == get<3>(_digraphTokens[i])){
+			retval.push_back(get<0>(_digraphTokens[i]));
+			retval.push_back(get<2>(_digraphTokens[i]));
+			return retval;
 		}
 	}
 
 	for (size_t i = 0; i < _nKeywords; i++){
-		if (token == std::get<1>(_keywordTokens[i])){
-			return std::get<0>(_keywordTokens[i]);
+		if (token == get<1>(_keywordTokens[i])){
+			return get<0>(_keywordTokens[i]);
 		}
 	}
 }

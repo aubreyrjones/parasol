@@ -16,6 +16,23 @@ DOTVisitor::DOTVisitor(std::string const &filename) : out(filename) {
 	out << "node [shape=record, style=filled];\n";
 }
 
+
+void dotSanitize(std::string &str) {
+	auto sani = [&str](char c) -> void {
+		size_t index = 0;
+		while (true) {
+			index = str.find(c, index);
+			if (index == std::string::npos) break;
+			str.replace(str.begin() + index, str.begin() + index + 1, "\\");
+			index++;
+			str.insert(str.begin() + index++, c);
+		}
+	};
+
+	sani('<');
+	sani('>');
+}
+
 size_t DOTVisitor::dotify(Node *root) {
 	if (!root) return nodeIdx;
 
@@ -46,7 +63,9 @@ size_t DOTVisitor::dotify(Node *root) {
 		out << "&Delta;" << static_cast<FunctionDef *>(root)->name->toString() << " " << formattedParams;
 	}
 	else if (nType == 'bnop') {
-		out << lookupToken(static_cast<BinaryOp *>(root)->operatorToken);
+		std::string tokenString = lookupToken(static_cast<BinaryOp *>(root)->operatorToken);
+		dotSanitize(tokenString);
+		out << tokenString;
 	}
 	else if (nType == 'unop') {
 		out << lookupToken(static_cast<UnaryOp *>(root)->operatorToken);
@@ -62,7 +81,7 @@ size_t DOTVisitor::dotify(Node *root) {
 		out << "&lambda;" << formattedParams;
 	}
 	else if (nType == 'csst') {
-		out << "?";
+		out << "&Psi;";
 	}
 	else {
 		printNodeType(root->type());
