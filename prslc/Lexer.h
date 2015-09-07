@@ -175,11 +175,8 @@ protected:
 			std::istringstream sstream(curString);
 
 			if (isIDChar(c)){
-				// basically, this guards against "22.rgb" being lexed as 22(floating) and then rgb.
+				// basically, this guards against "22.rgb" being lexed as 22.0(floating) and then rgb.
 				// but pushing a swizzle is also ambiguous. Best just to ask them to parenthesize or space.
-				// which results in parsing as two separate expressions.
-				// It usually winds up declaring linking variables in your pipelines.
-				// I can think of no circumstance in which this is what you want.
 				throw ParseError(tfm::format("You seem to have some identifier in your numeric literal on line %d. Do you need a paren or a space?", currentLine));
 			}
 

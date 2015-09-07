@@ -41,7 +41,6 @@ size_t DOTVisitor::dotify(Node *root) {
 	NodeType nType = root->type();
 
 	out << "node [label=\"";
-	
 
 	if (nType == '_int' ) {
 		out << static_cast<Integer *>(root)->value;
@@ -82,6 +81,9 @@ size_t DOTVisitor::dotify(Node *root) {
 	}
 	else if (nType == 'csst') {
 		out << "&Psi;";
+	}
+	else if (nType == 'strt') {
+		out << "{" << static_cast<StructDef*>(root)->name->value << "}";
 	}
 	else {
 		printNodeType(root->type());
@@ -152,6 +154,12 @@ size_t DOTVisitor::dotify(Node *root) {
 		}
 
 		dotAndLink(intermediate(thisIdx, "in"), let->body);
+	}
+	else if (nType == 'strt'){
+		auto struct_ = static_cast<StructDef*>(root);
+		for (Node *n : *struct_->members){
+			dotAndLink(thisIdx, n);
+		}
 	}
 
 	return thisIdx;

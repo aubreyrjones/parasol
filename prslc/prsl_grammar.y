@@ -40,6 +40,7 @@ global_list(G) ::= global_list(GL) global_item(I).    {GL->push_back(I); G = GL;
 %type global_item {Node*}
 global_item(G) ::= pipeline(P).    {G = P;}
 global_item(G) ::= function_def(F).    {G = F;}
+global_item(G) ::= struct_def(S).    {G = S;}
 
 
 %type pipeline {Pipeline*}
@@ -71,6 +72,17 @@ lambda_def(L) ::= LAMBDA param_list(PL) GOESTO expr(E).    {L = new Lambda(PL, E
 param_list(PL) ::= .    {PL = new ParameterList;}
 param_list(PL) ::= var_decl(V).    {PL = new ParameterList; PL->push_back(V);}
 param_list(P) ::= param_list(PL) COMMA var_decl(V).    {PL->push_back(V); P = PL;}
+
+
+%type struct_def {StructDef*}
+struct_def(S) ::= STRUCT id(N) L_CURLY struct_contents(M) R_CURLY.    {S = new StructDef(N, M);}
+
+
+%type struct_contents {NodeList*}
+%destructor struct_contents {for (auto p : *$$) delete p; delete $$;}
+struct_contents(SC) ::= .    {SC = new NodeList;}
+struct_contents(S) ::= struct_contents(SC) var_decl(V).    {SC->push_back(V); S = SC;}
+
 
 
 // expressions... which is most of the language

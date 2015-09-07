@@ -327,6 +327,23 @@ struct Pipeline : public Node {
 	virtual NodeType type() { return 'pipe'; }
 };
 
+struct StructDef : public Node {
+	Ident *name = nullptr;
+	NodeList *members = nullptr;
+
+	StructDef(Ident *name, NodeList *members) :
+			name(name),
+			members(members)
+	{}
+
+	virtual ~StructDef() {
+		if (name) delete name;
+		if (members) delete members;
+	}
+
+	virtual NodeType type() { return 'strt'; }
+};
+
 struct Module : public Node {
 	Ident *name = nullptr;
 	NodeList *globalDecls = nullptr;
