@@ -49,12 +49,13 @@ pipeline(P) ::= id(NAME) L_CURLY pipeline_contents(CONT) R_CURLY.    {P = new Pi
 %type pipeline_contents {NodeList*}
 %destructor pipeline_contents {for (auto p: *$$) delete p; delete $$;}
 pipeline_contents(NL) ::= .    {NL = new NodeList;}
+//pipeline_contents(NL) ::= pipeline_item(I) SEMICOLON.    {NL = new NodeList; NL->push_back(I);}
 pipeline_contents(N) ::= pipeline_contents(NL) pipeline_item(I).    {NL->push_back(I); N = NL;}
 
 
 %type pipeline_item {Node*}
 pipeline_item(PI) ::= function_def(F).    {PI = F;}
-pipeline_item(PI) ::= expr(E).    {PI = E;}
+pipeline_item(PI) ::= expr(E). [NOT]   {PI = E;}
 
 
 %type function_def {FunctionDef*}
@@ -72,6 +73,11 @@ param_list(P) ::= param_list(PL) COMMA var_decl(V).    {PL->push_back(V); P = PL
 
 // expressions... which is most of the language
 %type expr {Expression*}
+
+%nonassoc EQUALS.
+%left PLUS MINUS.
+%left MULT DIV CROSS DOT.
+%right NOT DEF.
 
 // declarative expressions
 expr(E)  ::= scoped_var_decl(V).    {E = V;}
@@ -94,16 +100,29 @@ var_decl(V) ::= id(NAME) COLON id(TYPE) integer(IDX).    {V = new VarDecl(NAME, 
 
 
 // arithmetic expressions
-expr(E)  ::= id(L) EQUALS expr(R).    {E = new BinaryOp(EQUALS, L, R);}
-expr(E)  ::= id(I).    {E = I;}
+expr(E) ::= id(I).    {E = I;}
 expr(E) ::= float_(F).    {E = F;}
-expr(E)  ::= integer(I).    {E = I;}
-expr(E)  ::= function_call(F).    {E = F;}
+expr(E) ::= integer(I).    {E = I;}
+expr(E) ::= function_call(F).    {E = F;}
+
+expr(E) ::= id(L) EQUALS expr(R).    {E = new BinaryOp(EQUALS, L, R);}
+
+expr(E) ::= expr(L) PLUS expr(R).    {E = new BinaryOp(PLUS, L, R);}
+expr(E) ::= expr(L) MINUS expr(R).    {E = new BinaryOp(MINUS, L, R);}
+expr(E) ::= expr(L) MULT expr(R).    {E = new BinaryOp(MULT, L, R);}
+expr(E) ::= expr(L) DIV expr(R).    {E = new BinaryOp(DIV, L, R);}
+expr(E) ::= expr(L) CROSS expr(R).    {E = new BinaryOp(CROSS, L, R);}
+expr(E) ::= expr(L) DOT expr(R).    {E = new BinaryOp(DOT, L, R);}
+expr(E) ::= NOT expr(I).    {E = new UnaryOp(NOT, I);}
+expr(E) ::= MINUS expr(I). [NOT]    {E = new UnaryOp(MINUS, I);}
+expr(E) ::= L_PAREN expr(I) R_PAREN.    {E = I;}
 
 
 %type function_call {FunctionCall*}
-function_call(F) ::= id(NAME) L_PAREN arg_list(ARGS) R_PAREN.    {F = new FunctionCall(NAME, ARGS);}
+function_call(F) ::= fncall(NAME) arg_list(ARGS) R_PAREN.    {F = new FunctionCall(NAME, ARGS);}
 
+%type fncall {Ident*}
+fncall(I) ::= FNCALL(F).    {I = new Ident(getstr(p, F.value.stringIndex));}
 
 %type arg_list {ArgumentList*}
 %destructor arg_list {for (auto p: *$$) delete p; delete $$;}

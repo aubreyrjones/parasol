@@ -58,7 +58,11 @@ ast::Module *parseModule(ITER start, ITER end) {
 	PRSLToken token;
 
 	size_t tokenCount = 0;
-	while (lexer.next(token)) {
+	while (true) {
+		if (!lexer.next(token)){
+			throw ParseError("Cannot lex.");
+		}
+
 		parser.offerToken(token);
 		tokenCount++;
 		if (lexer.atEnd()){

@@ -13,7 +13,15 @@ SymbolToken _symbolTokens[] = {
 	SymbolToken(']', R_BRACKET),
 	SymbolToken('(', L_PAREN),
 	SymbolToken(')', R_PAREN),
-	SymbolToken(':', COLON)
+	SymbolToken(':', COLON),
+	SymbolToken('+', PLUS),
+	SymbolToken('-', MINUS),
+	SymbolToken('*', MULT),
+	SymbolToken('/', DIV),
+	SymbolToken('%', CROSS),
+	SymbolToken('`', DOT),
+	SymbolToken('~', NOT)
+	//SymbolToken(';', SEMICOLON)
 };
 size_t _nSymbols = sizeof(_symbolTokens) / sizeof(SymbolToken);
 

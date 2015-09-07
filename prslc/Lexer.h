@@ -186,7 +186,6 @@ protected:
 		advance();
 
 		while (cur != end){
-			c = c;
 			if (std::isalnum(c) || c == '_' || c == '?'){
 				curString.push_back(c);
 				advance();
@@ -200,10 +199,19 @@ protected:
 			skipWhitespace();
 		}
 
-		if (c == '['){ // scope decl
-			retval.tokenType = SCOPEREF;
+		auto pushAndAdvance = [this, &retval]() -> void {
 			retval.value.stringIndex = stringTable->pushString(curString);
 			advance();
+		};
+
+		if (c == '['){ // scope decl
+			retval.tokenType = SCOPEREF;
+			pushAndAdvance();
+			return true;
+		}
+		if (c == '('){ // function call
+			retval.tokenType = FNCALL;
+			pushAndAdvance();
 			return true;
 		}
 

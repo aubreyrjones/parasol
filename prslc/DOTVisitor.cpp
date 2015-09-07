@@ -33,7 +33,7 @@ size_t DOTVisitor::dotify(Node *root) {
 		out << static_cast<Float*>(root)->value;
 		break;
 	case 'idnt':
-		out << "id:" << static_cast<Ident*>(root)->value;
+		out << static_cast<Ident*>(root)->value;
 		break;
 	case '_mod':
 		out << "mod:" << static_cast<Module*>(root)->name->value;
@@ -46,6 +46,9 @@ size_t DOTVisitor::dotify(Node *root) {
 		break;
 	case 'bnop':
 		out << lookupToken(static_cast<BinaryOp*>(root)->operatorToken);
+		break;
+	case 'unop':
+		out << lookupToken(static_cast<UnaryOp*>(root)->operatorToken);
 		break;
 	case 'vdcl':
 		out << static_cast<VarDecl*>(root)->toString();
@@ -77,6 +80,10 @@ size_t DOTVisitor::dotify(Node *root) {
 		auto op = static_cast<BinaryOp*>(root);
 		dotAndLink(thisIdx, op->left);
 		dotAndLink(thisIdx, op->right);
+	}
+	else if (nType == 'unop'){
+		auto op = static_cast<UnaryOp*>(root);
+		dotAndLink(thisIdx, op->argument);
 	}
 	else if (nType == 'fndf'){
 		auto fn = static_cast<FunctionDef*>(root);
