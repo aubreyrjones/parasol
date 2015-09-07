@@ -55,7 +55,7 @@ size_t DOTVisitor::dotify(Node *root) {
 		out << "mod:" << static_cast<Module *>(root)->name->value;
 	}
 	else if (nType == 'pipe') {
-		out << "pipe:" << static_cast<Pipeline *>(root)->name->value;
+		out << "=" << static_cast<Pipeline *>(root)->name->value << "=" ;
 	}
 	else if (nType == 'fndf') {
 		std::string formattedParams = formatParameterList(static_cast<FunctionDef *>(root)->parameters);
@@ -83,7 +83,7 @@ size_t DOTVisitor::dotify(Node *root) {
 		out << "&Psi;";
 	}
 	else if (nType == 'strt') {
-		out << "{" << static_cast<StructDef*>(root)->name->value << "}";
+		out << "\\{" << static_cast<StructDef*>(root)->name->value << "\\}";
 	}
 	else {
 		printNodeType(root->type());
