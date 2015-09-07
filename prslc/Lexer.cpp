@@ -31,7 +31,9 @@ DigraphToken _digraphTokens[] = {
 size_t _nDigraphs = sizeof(_digraphTokens) / sizeof(DigraphToken);
 
 KeywordToken _keywordTokens[] = {
-	KeywordToken("def", DEF)
+	KeywordToken("def", DEF),
+	KeywordToken("let", LET),
+	KeywordToken("in", IN)
 };
 size_t _nKeywords = sizeof(_keywordTokens) / sizeof(KeywordToken);
 

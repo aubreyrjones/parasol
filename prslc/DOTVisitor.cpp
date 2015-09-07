@@ -125,6 +125,15 @@ size_t DOTVisitor::dotify(Node *root) {
 		dotAndLink(thisIdx, case_->condition);
 		dotAndLink(thisIdx, case_->result);
 	}
+	else if (nType == '_let'){
+		auto let = static_cast<Let*>(root);
+
+		for (Node *n : *let->assignments){
+			dotAndLink(thisIdx, n);
+		}
+
+		dotAndLink(intermediate(thisIdx, "in"), let->body);
+	}
 
 	return thisIdx;
 }

@@ -288,6 +288,23 @@ struct CaseSet : public Expression {
 	virtual NodeType type() { return 'csst'; }
 };
 
+struct Let : public Expression {
+	NodeList *assignments = nullptr;
+	Expression *body = nullptr;
+
+	Let(NodeList *assignments, Expression *body) :
+			assignments(assignments),
+			body(body)
+	{}
+
+	virtual ~Let() {
+		if (assignments) delete assignments;
+		if (body) delete body;
+	}
+
+	virtual NodeType type() { return '_let'; }
+};
+
 struct Pipeline : public Node {
 	Ident *name = nullptr;
 	NodeList *contents = nullptr;
