@@ -49,19 +49,22 @@ pipeline(P) ::= id(NAME) L_CURLY pipeline_contents(CONT) R_CURLY.    {P = new Pi
 %type pipeline_contents {NodeList*}
 %destructor pipeline_contents {for (auto p: *$$) delete p; delete $$;}
 pipeline_contents(NL) ::= .    {NL = new NodeList;}
-//pipeline_contents(NL) ::= pipeline_item(I) SEMICOLON.    {NL = new NodeList; NL->push_back(I);}
 pipeline_contents(N) ::= pipeline_contents(NL) pipeline_item(I).    {NL->push_back(I); N = NL;}
 
 
 %type pipeline_item {Node*}
 pipeline_item(PI) ::= function_def(F).    {PI = F;}
-pipeline_item(PI) ::= expr(E). [NOT]   {PI = E;}
+pipeline_item(PI) ::= var_decl(E).    {PI = E;}
+pipeline_item(PI) ::= scoped_var_decl(E).    {PI = E;}
+pipeline_item(PI) ::= assignment_expr(E).    {PI = E;}
 
 
 %type function_def {FunctionDef*}
 function_def(F) ::= DEF var_decl(VD) param_list(PL) GOESTO expr(E).    {F = new FunctionDef(VD, PL, E);}
 function_def(F) ::= DEF scoped_var_decl(VD) param_list(PL) GOESTO expr(E).    {F = new FunctionDef(VD, PL, E);}
 
+%type lambda_def {Lambda*}
+lambda_def(L) ::= LAMBDA param_list(PL) GOESTO expr(E).    {L = new Lambda(PL, E);}
 
 %type param_list {ParameterList*}
 %destructor param_list {for (auto p: *$$) delete p; delete $$;}
@@ -70,18 +73,17 @@ param_list(PL) ::= var_decl(V).    {PL = new ParameterList; PL->push_back(V);}
 param_list(P) ::= param_list(PL) COMMA var_decl(V).    {PL->push_back(V); P = PL;}
 
 
-
 // expressions... which is most of the language
 %type expr {Expression*}
 
+%left COMMA.
 %left EQUALS.
 %left PLUS MINUS.
 %left MULT DIV CROSS DOT.
-%right NOT DEF.
+%right NOT ELSE LAMBDA.
 
 // declarative expressions
 expr(E)  ::= scoped_var_decl(V).    {E = V;}
-expr(E)  ::= scoped_var_decl(L) EQUALS expr(R).    {E = new BinaryOp(EQUALS, L, R);}
 
 
 %type scoped_var_decl {VarDecl*}
@@ -105,7 +107,7 @@ expr(E) ::= float_(F).    {E = F;}
 expr(E) ::= integer(I).    {E = I;}
 expr(E) ::= function_call(F).    {E = F;}
 
-expr(E) ::= id(L) EQUALS expr(R).    {E = new BinaryOp(EQUALS, L, R);}
+expr(E) ::= assignment_expr(I).    {E = I;}
 
 expr(E) ::= expr(L) PLUS expr(R).    {E = new BinaryOp(PLUS, L, R);}
 expr(E) ::= expr(L) MINUS expr(R).    {E = new BinaryOp(MINUS, L, R);}
@@ -116,7 +118,12 @@ expr(E) ::= expr(L) DOT expr(R).    {E = new BinaryOp(DOT, L, R);}
 expr(E) ::= NOT expr(I).    {E = new UnaryOp(NOT, I);}
 expr(E) ::= MINUS expr(I). [NOT]    {E = new UnaryOp(MINUS, I);}
 expr(E) ::= L_PAREN expr(I) R_PAREN.    {E = I;}
+expr(E) ::= IF L_PAREN expr(C) R_PAREN expr(TH) ELSE expr(EL).    {E = new IfExpr(C, TH, EL);}
+expr(E) ::= lambda_def(L).    {E = L;}
 
+%type assignment_expr {Expression*}
+assignment_expr(E) ::= var_decl(L) EQUALS expr(R).    {E = new BinaryOp(EQUALS, L, R);}
+assignment_expr(E) ::= scoped_var_decl(L) EQUALS expr(R).    {E = new BinaryOp(EQUALS, L, R);}
 
 %type function_call {FunctionCall*}
 function_call(F) ::= fncall(NAME) arg_list(ARGS) R_PAREN.    {F = new FunctionCall(NAME, ARGS);}

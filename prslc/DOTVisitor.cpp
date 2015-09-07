@@ -24,41 +24,45 @@ size_t DOTVisitor::dotify(Node *root) {
 	NodeType nType = root->type();
 
 	out << "node [label=\"";
+	
 
-	switch (nType){
-	case '_int' :
-		out << static_cast<Integer*>(root)->value;
-		break;
-	case '_flt':
-		out << static_cast<Float*>(root)->value;
-		break;
-	case 'idnt':
-		out << static_cast<Ident*>(root)->value;
-		break;
-	case '_mod':
-		out << "mod:" << static_cast<Module*>(root)->name->value;
-		break;
-	case 'pipe':
-		out << "pipe:" << static_cast<Pipeline*>(root)->name->value;
-		break;
-	case 'fndf':
-		out << "def:" << static_cast<FunctionDef*>(root)->name->toString();
-		break;
-	case 'bnop':
-		out << lookupToken(static_cast<BinaryOp*>(root)->operatorToken);
-		break;
-	case 'unop':
-		out << lookupToken(static_cast<UnaryOp*>(root)->operatorToken);
-		break;
-	case 'vdcl':
-		out << static_cast<VarDecl*>(root)->toString();
-		break;
-	case 'fncl':
-		out << "call:" << static_cast<FunctionCall*>(root)->functionName->value;
-		break;
-	default:
+	if (nType == '_int' ) {
+		out << static_cast<Integer *>(root)->value;
+	}
+	else if (nType == '_flt') {
+		out << static_cast<Float *>(root)->value;
+	}
+	else if (nType == 'idnt') {
+		out << static_cast<Ident *>(root)->value;
+	}
+	else if (nType == '_mod') {
+		out << "mod:" << static_cast<Module *>(root)->name->value;
+	}
+	else if (nType == 'pipe') {
+		out << "pipe:" << static_cast<Pipeline *>(root)->name->value;
+	}
+	else if (nType == 'fndf') {
+		std::string formattedParams = formatParameterList(static_cast<FunctionDef *>(root)->parameters);
+		out << "&Delta;" << static_cast<FunctionDef *>(root)->name->toString() << " " << formattedParams;
+	}
+	else if (nType == 'bnop') {
+		out << lookupToken(static_cast<BinaryOp *>(root)->operatorToken);
+	}
+	else if (nType == 'unop') {
+		out << lookupToken(static_cast<UnaryOp *>(root)->operatorToken);
+	}
+	else if (nType == 'vdcl') {
+		out << static_cast<VarDecl *>(root)->toString();
+	}
+	else if (nType == 'fncl') {
+		out << "call:" << static_cast<FunctionCall *>(root)->functionName->value;
+	}
+	else if (nType == 'lmbd') {
+		std::string formattedParams = formatParameterList(static_cast<Lambda *>(root)->parameters);
+		out << "&lambda;" << formattedParams;
+	}
+	else {
 		printNodeType(root->type());
-		break;
 	}
 	out << "\"";
 	out << "] " << thisIdx;
@@ -87,14 +91,6 @@ size_t DOTVisitor::dotify(Node *root) {
 	}
 	else if (nType == 'fndf'){
 		auto fn = static_cast<FunctionDef*>(root);
-
-		if (fn->parameters && fn->parameters->size() > 0) {
-			size_t pIdx = intermediate(thisIdx, "params");
-			for (Node *n : *fn->parameters) {
-				dotAndLink(pIdx, n);
-			}
-		}
-
 		dotAndLink(thisIdx, fn->body);
 	}
 	else if (nType == 'fncl'){
@@ -102,6 +98,16 @@ size_t DOTVisitor::dotify(Node *root) {
 		for (Node *n: *fn->arguments){
 			dotAndLink(thisIdx, n);
 		}
+	}
+	else if (nType == '_if_'){
+		auto if_ = static_cast<IfExpr*>(root);
+		dotAndLink(thisIdx, if_->condition);
+		dotAndLink(thisIdx, if_->thenExpr);
+		dotAndLink(thisIdx, if_->elseExpr);
+	}
+	else if (nType == 'lmbd'){
+		auto lambda = static_cast<Lambda*>(root);
+		dotAndLink(thisIdx, lambda->body);
 	}
 
 	return thisIdx;

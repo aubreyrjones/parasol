@@ -3,8 +3,9 @@
 //
 
 #include <string>
-#include <list>
+#include <vector>
 #include <sstream>
+#include <stdint.h>
 
 #ifndef PARASOL_PARASOLPT_H
 #define PARASOL_PARASOLPT_H
@@ -17,9 +18,9 @@ class Expression;
 class VarDecl;
 class Node;
 
-typedef std::list<VarDecl*> ParameterList;
-typedef std::list<Expression*> ArgumentList;
-typedef std::list<Node*> NodeList;
+typedef std::vector<VarDecl*> ParameterList;
+typedef std::vector<Expression*> ArgumentList;
+typedef std::vector<Node*> NodeList;
 
 typedef uint32_t NodeType;
 
@@ -96,6 +97,26 @@ struct Ident : public Expression {
 	virtual NodeType type() { return 'idnt'; }
 };
 
+struct IfExpr : public Expression {
+	Expression *condition = nullptr;
+	Expression *thenExpr = nullptr;
+	Expression *elseExpr = nullptr;
+
+	IfExpr(Expression *cond, Expression *then, Expression *elseExpr) :
+			condition(cond),
+			thenExpr(then),
+			elseExpr(elseExpr)
+	{}
+
+	virtual ~IfExpr() {
+		if (condition) delete condition;
+		if (thenExpr) delete thenExpr;
+		if (elseExpr) delete elseExpr;
+	}
+
+	virtual NodeType type() { return '_if_'; }
+};
+
 struct VarDecl : public Expression {
 	Ident *varName = nullptr;
 	Ident *varType = nullptr;
@@ -165,7 +186,7 @@ struct VarDecl : public Expression {
 			out << "]";
 		}
 
-		return std::string(out.str());
+		return out.str();
 	}
 };
 
@@ -214,6 +235,23 @@ struct FunctionDef : public Node {
 	virtual NodeType type() { return 'fndf'; }
 };
 
+struct Lambda : public Expression {
+	ParameterList *parameters = nullptr;
+	Expression *body = nullptr;
+
+	Lambda(ParameterList *params, Expression *body) :
+			parameters(params),
+			body(body)
+	{}
+
+	virtual ~Lambda() {
+		if (parameters) delete parameters;
+		if (body) delete body;
+	}
+
+	virtual NodeType type() { return 'lmbd'; }
+};
+
 struct Pipeline : public Node {
 	Ident *name = nullptr;
 	NodeList *contents = nullptr;
@@ -247,6 +285,9 @@ struct Module : public Node {
 
 	virtual NodeType type() { return '_mod'; }
 };
+
+
+std::string formatParameterList(ParameterList *params);
 
 }} // namespace
 

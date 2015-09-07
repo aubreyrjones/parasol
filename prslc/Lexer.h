@@ -204,6 +204,14 @@ protected:
 			advance();
 		};
 
+		// check keywords
+		for (size_t i = 0; i < _nKeywords; i++){
+			if (curString == std::string(std::get<0>(_keywordTokens[i]))){
+				retval.tokenType = std::get<1>(_keywordTokens[i]);
+				return true;
+			}
+		}
+
 		if (c == '['){ // scope decl
 			retval.tokenType = SCOPEREF;
 			pushAndAdvance();
@@ -213,14 +221,6 @@ protected:
 			retval.tokenType = FNCALL;
 			pushAndAdvance();
 			return true;
-		}
-
-		// check keywords
-		for (size_t i = 0; i < _nKeywords; i++){
-			if (curString == std::string(std::get<0>(_keywordTokens[i]))){
-				retval.tokenType = std::get<1>(_keywordTokens[i]);
-				return true;
-			}
 		}
 
 		retval.tokenType = ID;

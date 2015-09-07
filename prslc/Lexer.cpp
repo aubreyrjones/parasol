@@ -20,7 +20,8 @@ SymbolToken _symbolTokens[] = {
 	SymbolToken('/', DIV),
 	SymbolToken('%', CROSS),
 	SymbolToken('`', DOT),
-	SymbolToken('~', NOT)
+	SymbolToken('~', NOT),
+	SymbolToken('\\', LAMBDA)
 };
 size_t _nSymbols = sizeof(_symbolTokens) / sizeof(SymbolToken);
 
@@ -30,7 +31,9 @@ DigraphToken _digraphTokens[] = {
 size_t _nDigraphs = sizeof(_digraphTokens) / sizeof(DigraphToken);
 
 KeywordToken _keywordTokens[] = {
-	KeywordToken("def", DEF)
+	KeywordToken("def", DEF),
+	KeywordToken("if", IF),
+	KeywordToken("else", ELSE)
 };
 size_t _nKeywords = sizeof(_keywordTokens) / sizeof(KeywordToken);
 

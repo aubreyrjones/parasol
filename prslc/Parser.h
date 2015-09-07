@@ -44,9 +44,13 @@ public:
 	ast::NodeList* getGlobals() { return globals; };
 };
 
+
+
 inline std::string const& getstr(prsl::Parser *p, size_t index){
 	return p->getString(index);
 }
+
+
 
 template <class ITER>
 ast::Module *parseModule(ITER start, ITER end) {
