@@ -40,10 +40,35 @@ public:
 	void success();
 
 	void pushAST(ast::NodeList *globals);
+
+	ast::NodeList* getGlobals() { return globals; };
 };
 
 inline std::string const& getstr(prsl::Parser *p, size_t index){
 	return p->getString(index);
+}
+
+template <class ITER>
+ast::Module *parseModule(ITER start, ITER end) {
+
+	Parser parser;
+
+	prsl::Lexer<ITER> lexer(start, end, parser.getStrings());
+
+	PRSLToken token;
+
+	size_t tokenCount = 0;
+	while (lexer.next(token)) {
+		parser.offerToken(token);
+		tokenCount++;
+		if (lexer.atEnd()){
+			break; // end of input
+		}
+	}
+
+	std::cout << "Tokens parsed: " << tokenCount << std::endl;
+
+	return new ast::Module("unnamed", parser.getGlobals());
 }
 
 }

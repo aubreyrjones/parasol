@@ -75,7 +75,7 @@ param_list(P) ::= param_list(PL) COMMA var_decl(V).    {PL->push_back(V); P = PL
 %type expr {Expression*}
 
 // declarative expressions
-expr  ::= scoped_var_decl.
+expr(E)  ::= scoped_var_decl(V).    {E = V;}
 expr  ::= scoped_var_decl EQUALS expr.
 
 
@@ -90,8 +90,9 @@ scope(I) ::= SCOPEREF(S).    {I = new Ident(getstr(p, S.value.stringIndex));}
 %type var_decl {VarDecl*}
 var_decl(V) ::= id(NAME).    {V = new VarDecl(NAME, nullptr, nullptr);}
 var_decl(V) ::= id(NAME) COLON id(TYPE).    {V = new VarDecl(NAME, TYPE, nullptr); }
-var_decl(V) ::= id(NAME) COLON id(TYPE) integer(IDX).    {V = new VarDecl(NAME, TYPE, IDX);}
 var_decl(V) ::= id(NAME) COLON integer(IDX).    {V = new VarDecl(NAME, nullptr, IDX);}
+var_decl(V) ::= id(NAME) COLON id(TYPE) integer(IDX).    {V = new VarDecl(NAME, TYPE, IDX);}
+
 
 // arithmetic expressions
 expr  ::= id EQUALS expr.
@@ -110,7 +111,6 @@ function_call(F) ::= id(NAME) L_PAREN arg_list(ARGS) R_PAREN.    {F = new Functi
 arg_list(PL) ::= .    {PL = new ArgumentList; }
 arg_list(PL) ::= expr(E).    {PL = new ArgumentList; PL->push_back(E);}
 arg_list ::= arg_list(PL) COMMA expr(E).    {PL->push_back(E);}
-
 
 
 %type id {Ident*}

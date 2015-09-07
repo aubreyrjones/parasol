@@ -14,23 +14,7 @@ int main(int argc, char **argv){
 
 	try {
 		std::ifstream sourceFile(argv[1]);
-		prsl::Parser parser;
-
-		prsl::Lexer<FileCharIterator> lexer(FileCharIterator(sourceFile), FileCharIterator(), parser.getStrings());
-
-		PRSLToken token;
-
-		size_t tokenCount = 0;
-		while (lexer.next(token)) {
-			std::cout << token.tokenType << " ";
-			parser.offerToken(token);
-			tokenCount++;
-			if (lexer.atEnd()){
-				break; // end of input
-			}
-		}
-
-		std::cout << "Tokens parsed: " << tokenCount << std::endl;
+		prsl::ast::Module *module = prsl::parseModule(FileCharIterator(sourceFile), FileCharIterator());
 	}
 	catch (prsl::ParseError &pe){
 		std::cout << pe.what() << std::endl;

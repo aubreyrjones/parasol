@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(parasol)
 
 # sorry folks, it's gotta be c++11. If you aren't paying me, I'm not going back!
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wno-multichar -std=c++11")
 
 # this brings in our partial, headers-only subset of boost
 include_directories(include)
@@ -54,7 +54,7 @@ set(COMPILER_SOURCE_FILES
         prslc/Lexer.cpp
         prslc/Lexer.h
         prslc/Token.cpp
-        prslc/Token.h prslc/Parser.cpp prslc/Parser.h)
+        prslc/Token.h prslc/Parser.cpp prslc/Parser.h prslc/DOTVisitor.cpp prslc/DOTVisitor.h)
 
 add_library(prsl STATIC ${COMPILER_SOURCE_FILES})
 

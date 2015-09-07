@@ -20,30 +20,44 @@ typedef std::list<VarDecl*> ParameterList;
 typedef std::list<Expression*> ArgumentList;
 typedef std::list<Node*> NodeList;
 
+typedef uint32_t NodeType;
+
 struct Node {
 	virtual ~Node() {}
+
+	virtual NodeType type() = 0;
+
+	virtual bool isExpr() { return false; }
 };
 
 struct Expression : public Node {
 	virtual ~Expression() {}
+
+	bool isExpr() override { return true; }
 };
 
 struct Integer : public Expression {
 	int64_t value;
 
 	Integer(int64_t value) : value(value) {}
+
+	virtual NodeType type() { return '_int'; }
 };
 
 struct Float : public Expression {
 	float value;
 
 	Float(float value) : value(value) {}
+
+	virtual NodeType type() { return '_flt'; }
 };
 
 struct Ident : public Expression {
 	std::string value;
 
 	Ident(std::string const& value) : value(value) {}
+
+	virtual NodeType type() { return 'idnt'; }
 };
 
 struct VarDecl : public Expression {
@@ -85,6 +99,8 @@ struct VarDecl : public Expression {
 		if (varIndex) delete varIndex;
 		if (scope) delete scope;
 	}
+
+	virtual NodeType type() { return 'vdcl'; }
 };
 
 struct FunctionCall : public Expression {
@@ -108,6 +124,8 @@ struct FunctionCall : public Expression {
 			delete arguments;
 		}
 	}
+
+	virtual NodeType type() { return 'fncl'; }
 };
 
 struct FunctionDef : public Node {
@@ -126,11 +144,13 @@ struct FunctionDef : public Node {
 		if (parameters) delete parameters;
 		if (body) delete body;
 	}
+
+	virtual NodeType type() { return 'fndf'; }
 };
 
 struct Pipeline : public Node {
-	Ident *name;
-	NodeList *contents;
+	Ident *name = nullptr;
+	NodeList *contents = nullptr;
 
 	Pipeline(Ident *name, NodeList *contents) :
 			name(name),
@@ -146,6 +166,20 @@ struct Pipeline : public Node {
 			delete contents;
 		}
 	}
+
+	virtual NodeType type() { return 'pipe'; }
+};
+
+struct Module : public Node {
+	Ident *name = nullptr;
+	NodeList *globalDecls = nullptr;
+
+	Module(std::string const& name, NodeList *globalDecls) :
+			name(new Ident(name)),
+			globalDecls(globalDecls)
+	{}
+
+	virtual NodeType type() { return '_mod'; }
 };
 
 }} // namespace
