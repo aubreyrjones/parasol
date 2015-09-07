@@ -4,6 +4,7 @@
 
 #include <string>
 #include <list>
+#include <sstream>
 
 #ifndef PARASOL_PARASOLPT_H
 #define PARASOL_PARASOLPT_H
@@ -34,6 +35,41 @@ struct Expression : public Node {
 	virtual ~Expression() {}
 
 	bool isExpr() override { return true; }
+};
+
+struct BinaryOp : public Expression {
+	int operatorToken; // as taken from prsl_grammar.h
+	Expression *left;
+	Expression *right;
+
+	BinaryOp(int op, Expression *left, Expression *right) :
+			operatorToken(op),
+			left(left),
+			right(right)
+	{}
+
+	virtual ~BinaryOp() {
+		if (left) delete left;
+		if (right) delete right;
+	}
+
+	virtual NodeType type() { return 'bnop'; }
+};
+
+struct UnaryOp : public Expression {
+	int operatorToken;
+	Expression *argument;
+
+	UnaryOp(int op, Expression *argument) :
+			operatorToken(op),
+			argument(argument)
+	{}
+
+	virtual ~UnaryOp() {
+		if (argument) delete argument;
+	}
+
+	virtual NodeType type() { return 'unop'; }
 };
 
 struct Integer : public Expression {
@@ -101,6 +137,36 @@ struct VarDecl : public Expression {
 	}
 
 	virtual NodeType type() { return 'vdcl'; }
+
+	std::string toString() {
+		std::stringstream out;
+
+		if (scope) {
+			out << scope->value << "[";
+		}
+
+		if (varName) {
+			out << varName->value;
+		}
+
+		if (varType || varIndex) {
+			out << ":";
+		}
+
+		if (varType) {
+			out << " " << varType->value;
+		}
+
+		if (varIndex) {
+			out << " " << varIndex->value;
+		}
+
+		if (scope) {
+			out << "]";
+		}
+
+		return std::string(out.str());
+	}
 };
 
 struct FunctionCall : public Expression {

@@ -49,7 +49,6 @@ pipeline(P) ::= id(NAME) L_CURLY pipeline_contents(CONT) R_CURLY.    {P = new Pi
 %type pipeline_contents {NodeList*}
 %destructor pipeline_contents {for (auto p: *$$) delete p; delete $$;}
 pipeline_contents(NL) ::= .    {NL = new NodeList;}
-//pipeline_contents(NL) ::= pipeline_item(I).    {NL = new NodeList; NL->push_back(I);}
 pipeline_contents(N) ::= pipeline_contents(NL) pipeline_item(I).    {NL->push_back(I); N = NL;}
 
 
@@ -80,7 +79,7 @@ expr  ::= scoped_var_decl EQUALS expr.
 
 
 %type scoped_var_decl {VarDecl*}
-scoped_var_decl ::= scope var_decl R_BRACKET.//    {V = new VarDecl(DECL, S); delete DECL;}
+scoped_var_decl(V) ::= scope(S) var_decl(DECL) R_BRACKET.    {V = new VarDecl(DECL, S); delete DECL;}
 
 
 %type scope {Ident*}
@@ -95,7 +94,7 @@ var_decl(V) ::= id(NAME) COLON id(TYPE) integer(IDX).    {V = new VarDecl(NAME, 
 
 
 // arithmetic expressions
-expr  ::= id EQUALS expr.
+expr(E)  ::= id(L) EQUALS expr(R).    {E = new BinaryOp(EQUALS, L, R);}
 expr(E)  ::= id(I).    {E = I;}
 expr(E) ::= float_(F).    {E = F;}
 expr(E)  ::= integer(I).    {E = I;}
@@ -110,7 +109,7 @@ function_call(F) ::= id(NAME) L_PAREN arg_list(ARGS) R_PAREN.    {F = new Functi
 %destructor arg_list {for (auto p: *$$) delete p; delete $$;}
 arg_list(PL) ::= .    {PL = new ArgumentList; }
 arg_list(PL) ::= expr(E).    {PL = new ArgumentList; PL->push_back(E);}
-arg_list ::= arg_list(PL) COMMA expr(E).    {PL->push_back(E);}
+arg_list(A) ::= arg_list(PL) COMMA expr(E).    {PL->push_back(E); A = PL;}
 
 
 %type id {Ident*}

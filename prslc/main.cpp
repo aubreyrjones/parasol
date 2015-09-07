@@ -1,5 +1,6 @@
 #include "Lexer.h"
 #include "Parser.h"
+#include "DOTVisitor.h"
 #include <fstream>
 #include <iterator>
 
@@ -15,6 +16,9 @@ int main(int argc, char **argv){
 	try {
 		std::ifstream sourceFile(argv[1]);
 		prsl::ast::Module *module = prsl::parseModule(FileCharIterator(sourceFile), FileCharIterator());
+
+		prsl::DOTVisitor dotter("ast.dot");
+		dotter.dotify(module);
 	}
 	catch (prsl::ParseError &pe){
 		std::cout << pe.what() << std::endl;

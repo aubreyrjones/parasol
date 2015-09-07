@@ -46,4 +46,32 @@ std::string const &StringTable::getString(size_t index) {
 	return strings[index];
 }
 
+std::string lookupToken(int token) {
+	std::string retval;
+
+	for (size_t i = 0; i < _nSymbols; i++){
+		if (token == std::get<1>(_symbolTokens[i])){
+			retval.push_back(std::get<0>(_symbolTokens[i]));
+			return retval;
+		}
+	}
+
+	for (size_t i = 0; i < _nDigraphs; i++){
+		if (token == std::get<1>(_digraphTokens[i])){
+			retval.push_back(std::get<0>(_digraphTokens[i]));
+			return retval;
+		}
+		else if (token == std::get<3>(_digraphTokens[i])){
+			retval.push_back(std::get<0>(_digraphTokens[i]));
+			retval.push_back(std::get<1>(_digraphTokens[i]));
+		}
+	}
+
+	for (size_t i = 0; i < _nKeywords; i++){
+		if (token == std::get<1>(_keywordTokens[i])){
+			return std::get<0>(_keywordTokens[i]);
+		}
+	}
+}
+
 }

@@ -54,6 +54,8 @@ inline bool isSpace(char const& c) {
 	return std::isblank(c) || c == '\n' || c == '\r';
 }
 
+std::string lookupToken(int token);
+
 /**
  *
  * Main lexer template.
