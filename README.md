@@ -65,13 +65,7 @@ runtime; this is not typically the case.
 Additional libraries are included as source code in the Parasol project and built into the Parasol library. These
 libraries are:
 
-    * sqlite3
-
-Parasol also uses several elements of the Boost library: __these elements are header-only and do not require any
-additional compilation.__ This small subset of Boost is packaged with Parasol in the `include/boost` directory. If
-you're already using Boost (and you should be), you can omit this copy from the build; otherwise, you must make sure
-that the `parasol/include` directory is on the include path, or that Boost 1.59+ is installed on your system include 
-path.
+    * [nothing currently]
 
 Additionally, the compiler components depend on the `lemon` parser generator (included in `parasol/lemon`) to generate
 the parser. This step is included automatically in the CMake build, but can be executed offline if you aren't hacking
@@ -84,13 +78,6 @@ Anticipated Questions
 Q. Why C++11? Why not '98, or C, or Java?
 
 A. I'm doing this in my spare time. Pay me to write Parasol and we can discuss the implementation language.
-
-*
-
-Q. Damn... Boost? Really?
-
-A. It's just a little Boost. I only include what I use and the dependencies thereof. But, really, it's 2015. The
-header-only parts of Boost are totally worth the trouble of adding a `-I` to your compile line.
 
 *
 

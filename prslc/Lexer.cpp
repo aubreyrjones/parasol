@@ -21,7 +21,6 @@ SymbolToken _symbolTokens[] = {
 	SymbolToken('%', CROSS),
 	SymbolToken('`', DOT),
 	SymbolToken('~', NOT)
-	//SymbolToken(';', SEMICOLON)
 };
 size_t _nSymbols = sizeof(_symbolTokens) / sizeof(SymbolToken);
 

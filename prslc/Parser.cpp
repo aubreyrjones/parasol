@@ -3,7 +3,6 @@
 //
 
 #include "Parser.h"
-#include "Token.h"
 
 // these are all defined in prsl_grammar.c, as part of the lemon output.
 
