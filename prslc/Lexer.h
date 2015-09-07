@@ -83,9 +83,16 @@ protected:
 		c = *cur;
 	}
 
+	void skipToEOL(){
+		while (c != '\n') advance();
+	}
+
 	void skipWhitespace() {
 		while (cur != end) {
 			switch (c) {
+			case ';':
+				skipToEOL();
+				continue;
 			case '\n':
 				++currentLine;
 			case ' ':

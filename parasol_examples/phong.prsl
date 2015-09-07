@@ -18,22 +18,25 @@ struct point_light {
 phong_lighting {  
   v[v_color] = a[v_inColor: vec4]
 
-  u[point_lights.16: point_light]    // declares an array of size 16
+  u[point_lights.16: point_light]    ; declares an array of size 16
   v[!v_normal: vec3]
   v[!v_pos: vec3]
 
 
-  def L lightPos: vec3, fragPos: vec3 =>    // no stage scope for L, simple expression function
+  def L lightPos: vec3, fragPos: vec3 =>    ; no stage scope for L, simple expression function
     normalize(lightPos - fragPos)
 
-  def f[pointLightContrib] light =>    // since pointLightContrib has f-stage scope...
-    light.color * max(0, v_normal ` L(light.position, v_pos))    // ... it closes over the fragment inputs.
+  def f[pointLightContrib] light =>    ; since pointLightContrib has f-stage scope...
+    light.color * max(0, v_normal ` L(light.position, v_pos))    ; ... it closes over the fragment inputs.
 
-  def f[pointLight] light =>    // this is also declared with f-stage scope...
-    clamp(pointLightContrib(light), 0, 1)    // ... it can't be called in any other stage
+  def f[pointLight] light =>
+    {
+      light.color => clamp(pointLightContrib(light), 0, 1)    ; if light.color is truthy, there's your answer
+      _ => vec4(0)    ; _ is the default case
+    }
   
-  f[out_color: 0] =    // inline output index spec
-    reduce(\accum, new => accum + new,    // you could also just use `add` instead of a lambda...
+  f[out_color: 0] =    ; inline output index spec
+    reduce(\accum, new => accum + new,    ; you could also just use `add` instead of a lambda...
       map(pointLight, point_lights]))
   
 }
@@ -43,16 +46,16 @@ complete_phong_pipeline {
   include vertex_surface_normals
   include phong_lighting
 
-  // the next part is optional, and the parasol compiler will provide
-  // indices if you don't want to spec them. You'll have to query them
-  // out of the resultant linked object.
+  ; the next part is optional, and the parasol compiler will provide
+  ; indices if you don't want to spec them. You'll have to query them
+  ; out of the resultant linked object.
   
-  // alternatively, they can be spec'd inline with a[varName: type index]
-  // although this makes pipelines such pipelines difficult to compose
+  ; alternatively, they can be spec'd inline with a[varName: type index]
+  ; although this makes pipelines such pipelines difficult to compose
 
-  a[v_inPosition: 0]    // spec attribute indices
+  a[v_inPosition: 0]    ; spec attribute indices
   a[v_inNormal: 1]
   a[v_inColor: 2]
   
-  // f[out_color] was spec'd inline.
+  ; f[out_color] was spec'd inline.
 }
