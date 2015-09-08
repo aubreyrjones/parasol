@@ -118,10 +118,15 @@ scope(I) ::= SCOPEREF(S).    {I = new Ident(getstr(p, S.value.stringIndex));}
 
 
 %type var_decl {VarDecl*}
-var_decl(V) ::= id(NAME).    {V = new VarDecl(NAME, nullptr, nullptr);}
-var_decl(V) ::= id(NAME) COLON id(TYPE).    {V = new VarDecl(NAME, TYPE, nullptr); }
-var_decl(V) ::= id(NAME) COLON integer(IDX).    {V = new VarDecl(NAME, nullptr, IDX);}
-var_decl(V) ::= id(NAME) COLON id(TYPE) integer(IDX).    {V = new VarDecl(NAME, TYPE, IDX);}
+var_decl(V) ::= id(NAME) var_array_decl(A).    {V = new VarDecl(NAME, A, nullptr, nullptr);}
+var_decl(V) ::= id(NAME) var_array_decl(A) COLON id(TYPE).    {V = new VarDecl(NAME, A, TYPE, nullptr); }
+var_decl(V) ::= id(NAME) var_array_decl(A) COLON integer(IDX).    {V = new VarDecl(NAME, A, nullptr, IDX);}
+var_decl(V) ::= id(NAME) var_array_decl(A) COLON id(TYPE) integer(IDX).    {V = new VarDecl(NAME, A, TYPE, IDX);}
+
+%type var_array_decl {Integer*}
+var_array_decl(A) ::= .    {A = nullptr;}
+var_array_decl(A) ::= ARRAY integer(I).    {A = I;}
+
 
 
 // arithmetic expressions

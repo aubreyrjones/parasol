@@ -36,7 +36,7 @@ phong_lighting {
     }
   
   f[out_color: 0] =    ; inline output index spec
-    reduce(\accum, new => accum + new,    ; you could also just use `add` instead of a lambda...
+    reduce(\accum, new => accum + new,    ; you could also just use '+ instead of a lambda...
       map(pointLight, point_lights))
   
 }

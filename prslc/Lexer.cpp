@@ -23,7 +23,8 @@ SymbolToken _symbolTokens[] = {
 	SymbolToken('%', CROSS),
 	SymbolToken('`', DOT),
 	SymbolToken('\\', LAMBDA),
-	SymbolToken('.', SWIZZLE)
+	SymbolToken('.', SWIZZLE),
+	SymbolToken('@', ARRAY)
 };
 size_t _nSymbols = sizeof(_symbolTokens) / sizeof(SymbolToken);
 

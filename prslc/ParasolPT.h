@@ -121,18 +121,21 @@ struct IfExpr : public Expression {
 
 struct VarDecl : public Expression {
 	Ident *varName = nullptr;
+	Integer *arraySize = nullptr;
 	Ident *varType = nullptr;
 	Integer *varIndex = nullptr;
 	Ident *scope = nullptr;
 
-	VarDecl(Ident *varName, Ident *varType, Integer *varIndex) :
+	VarDecl(Ident *varName, Integer *arrSize, Ident *varType, Integer *varIndex) :
 			varName(varName),
+			arraySize(arrSize),
 			varType(varType),
 			varIndex(varIndex)
 	{}
 
-	VarDecl(Ident *varName, Ident *varType, Integer *varIndex, Ident *scope) :
+	VarDecl(Ident *varName, Integer *arrSize, Ident *varType, Integer *varIndex, Ident *scope) :
 			varName(varName),
+			arraySize(arrSize),
 			varType(varType),
 			varIndex(varIndex),
 			scope(scope)
@@ -141,11 +144,13 @@ struct VarDecl : public Expression {
 
 	VarDecl(VarDecl *o, Ident *scope) : // steal from o.
 			varName(o->varName),
+			arraySize(o->arraySize),
 			varType(o->varType),
 			varIndex(o->varIndex),
 			scope(scope)
 	{
 		o->varName = nullptr;
+		o->arraySize = nullptr;
 		o->varType = nullptr;
 		o->varIndex = nullptr;
 		o->scope = nullptr;
@@ -170,6 +175,10 @@ struct VarDecl : public Expression {
 
 		if (varName) {
 			out << varName->value;
+		}
+
+		if (arraySize) {
+			out << "@" << arraySize->value;
 		}
 
 		if (varType || varIndex) {

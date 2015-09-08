@@ -32,7 +32,7 @@ vertex_normal {
 
 ; This isn't very good art, but here's a little non-linear toon shader.
 bad_toon_shader {
-  include vertex_position    ; so that takes care of that
+  include vertex_pos    ; so that takes care of that
   include vertex_normal      ; ... and that.
 
   a[v_inPosition: 0]    ; and there's our attribute index
@@ -44,11 +44,15 @@ bad_toon_shader {
   f[outColor: 0] = 
     let 
       ldot = abs(dot(v_normal, lightDir))
-    in
-      v_color * 
-               {ldot < 0.25 => 0.15
-                ldot >= 0.25 && ldot < 0.5 => 0.65
-                _ => 1}
+      intensity = {
+         ldot < 0.25
+           => 0.15
+         ldot >= 0.25 && ldot < 0.5
+           => 0.65
+         _ => 1
+         }
+    in intensity * color
+
 }
 
 
