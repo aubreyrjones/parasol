@@ -18,7 +18,7 @@ struct point_light {
 phong_lighting {  
   v[v_color] = a[v_inColor: vec4]
 
-;  u[point_lights.16: point_light]    ; declares an array of size 16
+  u[point_lights: point_light@16]    ; declares an array of size 16
   v[v_normal: vec3]
   v[v_pos: vec3]
 
@@ -36,8 +36,9 @@ phong_lighting {
     }
   
   f[out_color: 0] =    ; inline output index spec
-    reduce(\accum, new => accum + new,    ; you could also just use '+ instead of a lambda...
-      map(pointLight, point_lights))
+    __(pointLight,    ; __(f, g, array) is short (and optimized) for reduce(g, map(f, array)).
+       \accum, item => accum + item,    ; you could also just use `add` instead, but this is an example
+       pointLights)    ; map/reduce is the main form of repetition in Parasol.
   
 }
 

@@ -32,6 +32,8 @@ struct Node {
 	virtual NodeType type() = 0;
 
 	virtual bool isExpr() { return false; }
+
+	virtual std::string toString() { return "node"; };
 };
 
 struct Expression : public Node {
@@ -97,6 +99,30 @@ struct Ident : public Expression {
 	Ident(std::string const& value) : value(value) {}
 
 	virtual NodeType type() { return 'idnt'; }
+
+	virtual std::string toString() { return value; };
+};
+
+struct TypeIdent : public Ident {
+	int64_t dimension = 1;
+
+	TypeIdent(std::string const& value, int64_t dimension = 1) :
+			Ident(value),
+			dimension(dimension)
+	{}
+
+	virtual NodeType type() { return 'tpid'; }
+
+	virtual std::string toString() {
+		std::stringstream out;
+
+		out << Ident::toString();
+		if (dimension > 1) {
+			out << "@" << dimension;
+		}
+
+		return out.str();
+	};
 };
 
 struct IfExpr : public Expression {
@@ -121,21 +147,18 @@ struct IfExpr : public Expression {
 
 struct VarDecl : public Expression {
 	Ident *varName = nullptr;
-	Integer *arraySize = nullptr;
-	Ident *varType = nullptr;
+	TypeIdent *varType = nullptr;
 	Integer *varIndex = nullptr;
 	Ident *scope = nullptr;
 
-	VarDecl(Ident *varName, Integer *arrSize, Ident *varType, Integer *varIndex) :
+	VarDecl(Ident *varName, TypeIdent *varType, Integer *varIndex) :
 			varName(varName),
-			arraySize(arrSize),
 			varType(varType),
 			varIndex(varIndex)
 	{}
 
-	VarDecl(Ident *varName, Integer *arrSize, Ident *varType, Integer *varIndex, Ident *scope) :
+	VarDecl(Ident *varName, TypeIdent *varType, Integer *varIndex, Ident *scope) :
 			varName(varName),
-			arraySize(arrSize),
 			varType(varType),
 			varIndex(varIndex),
 			scope(scope)
@@ -144,13 +167,11 @@ struct VarDecl : public Expression {
 
 	VarDecl(VarDecl *o, Ident *scope) : // steal from o.
 			varName(o->varName),
-			arraySize(o->arraySize),
 			varType(o->varType),
 			varIndex(o->varIndex),
 			scope(scope)
 	{
 		o->varName = nullptr;
-		o->arraySize = nullptr;
 		o->varType = nullptr;
 		o->varIndex = nullptr;
 		o->scope = nullptr;
@@ -177,16 +198,12 @@ struct VarDecl : public Expression {
 			out << varName->value;
 		}
 
-		if (arraySize) {
-			out << "@" << arraySize->value;
-		}
-
 		if (varType || varIndex) {
 			out << ":";
 		}
 
 		if (varType) {
-			out << " " << varType->value;
+			out << " " << varType->toString();
 		}
 
 		if (varIndex) {

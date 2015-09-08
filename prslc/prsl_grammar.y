@@ -118,14 +118,10 @@ scope(I) ::= SCOPEREF(S).    {I = new Ident(getstr(p, S.value.stringIndex));}
 
 
 %type var_decl {VarDecl*}
-var_decl(V) ::= id(NAME) var_array_decl(A).    {V = new VarDecl(NAME, A, nullptr, nullptr);}
-var_decl(V) ::= id(NAME) var_array_decl(A) COLON id(TYPE).    {V = new VarDecl(NAME, A, TYPE, nullptr); }
-var_decl(V) ::= id(NAME) var_array_decl(A) COLON integer(IDX).    {V = new VarDecl(NAME, A, nullptr, IDX);}
-var_decl(V) ::= id(NAME) var_array_decl(A) COLON id(TYPE) integer(IDX).    {V = new VarDecl(NAME, A, TYPE, IDX);}
-
-%type var_array_decl {Integer*}
-var_array_decl(A) ::= .    {A = nullptr;}
-var_array_decl(A) ::= ARRAY integer(I).    {A = I;}
+var_decl(V) ::= id(NAME).    {V = new VarDecl(NAME, nullptr, nullptr);}
+var_decl(V) ::= id(NAME) COLON type_id(TYPE) .    {V = new VarDecl(NAME, TYPE, nullptr); }
+var_decl(V) ::= id(NAME) COLON integer(IDX).    {V = new VarDecl(NAME, nullptr, IDX);}
+var_decl(V) ::= id(NAME) COLON type_id(TYPE) integer(IDX).    {V = new VarDecl(NAME, TYPE, IDX);}
 
 
 
@@ -215,6 +211,11 @@ arg_list(A) ::= arg_list(PL) COMMA expr(E).    {PL->push_back(E); A = PL;}
 
 %type id {Ident*}
 id(I) ::= ID(IDL).    {I = new Ident(getstr(p, IDL.value.stringIndex));}
+
+
+%type type_id {TypeIdent*}
+type_id(I) ::= ID(IDL).    {I = new TypeIdent(getstr(p, IDL.value.stringIndex));}
+type_id(I) ::= ID(IDL) ARRAY integer(A).    {I = new TypeIdent(getstr(p, IDL.value.stringIndex), A->value); delete A;}
 
 
 %type integer {Integer*}

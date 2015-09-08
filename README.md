@@ -40,6 +40,8 @@ generate errors, but you can refine previously-declared specs with additional in
         
     }
 
+
+Here's a [longer sample](parasol_examples/phong.prsl).
 For a more complex example, check out the [Phong-shading example](parasol_examples/phong.prsl).
 
 
@@ -65,7 +67,8 @@ runtime; this is not typically the case.
 Additional libraries are included as source code in the Parasol project and built into the Parasol library. These
 libraries are:
 
-    * [nothing currently]
+    * TinyFormat
+    * TCLAP
 
 Additionally, the compiler components depend on the `lemon` parser generator (included in `parasol/lemon`) to generate
 the parser. This step is included automatically in the CMake build, but can be executed offline if you aren't hacking
