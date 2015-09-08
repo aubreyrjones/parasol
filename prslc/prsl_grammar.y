@@ -101,7 +101,7 @@ include_decl(I) ::= INCLUDE id(P) AS id(A).    {I = new IncludeDecl(P, A);}
 %left LESS LESS_EQ GREATER GREATER_EQ.
 %left EQ NOT_EQ.
 %left PLUS MINUS.
-%left MULT DIV CROSS DOT.
+%left MULT DIV DOT.
 %left SWIZZLE.
 %right NOT ELSE.
 
@@ -137,7 +137,6 @@ expr(E) ::= expr(L) PLUS expr(R).    {E = new BinaryOp(PLUS, L, R);}
 expr(E) ::= expr(L) MINUS expr(R).    {E = new BinaryOp(MINUS, L, R);}
 expr(E) ::= expr(L) MULT expr(R).    {E = new BinaryOp(MULT, L, R);}
 expr(E) ::= expr(L) DIV expr(R).    {E = new BinaryOp(DIV, L, R);}
-expr(E) ::= expr(L) CROSS expr(R).    {E = new BinaryOp(CROSS, L, R);}
 expr(E) ::= expr(L) DOT expr(R).    {E = new BinaryOp(DOT, L, R);}
 expr(E) ::= NOT expr(I).    {E = new UnaryOp(NOT, I);}
 expr(E) ::= MINUS expr(I). [NOT]    {E = new UnaryOp(MINUS, I);}

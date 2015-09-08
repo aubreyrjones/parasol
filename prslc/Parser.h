@@ -63,9 +63,7 @@ ast::Module *parseModule(ITER start, ITER end) {
 
 	size_t tokenCount = 0;
 	while (true) {
-		if (!lexer.next(token)){
-			throw ParseError("Cannot lex.");
-		}
+		lexer.next(token); // throws parse error
 
 		parser.offerToken(token);
 		tokenCount++;

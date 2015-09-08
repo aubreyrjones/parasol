@@ -278,8 +278,9 @@ public:
 		if (gotToken){
 			retval.lineNumber = currentLine;
 		}
-
-		return gotToken;
+		else {
+			throw ParseError(tfm::format("Lexing failed on line %d. Unexpected character '%s'", currentLine, c));
+		}
 	}
 
 	bool atEnd() { return cur == end; }

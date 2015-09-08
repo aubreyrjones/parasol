@@ -31,6 +31,7 @@ void dotSanitize(std::string &str) {
 
 	sani('<');
 	sani('>');
+	sani('|');
 }
 
 size_t DOTVisitor::dotify(Node *root) {

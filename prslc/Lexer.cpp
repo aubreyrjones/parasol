@@ -18,10 +18,7 @@ SymbolToken _symbolTokens[] = {
 	SymbolToken(':', COLON),
 	SymbolToken('+', PLUS),
 	SymbolToken('-', MINUS),
-	SymbolToken('*', MULT),
 	SymbolToken('/', DIV),
-	SymbolToken('%', CROSS),
-	SymbolToken('`', DOT),
 	SymbolToken('\\', LAMBDA),
 	SymbolToken('.', SWIZZLE),
 	SymbolToken('@', ARRAY)
@@ -29,6 +26,7 @@ SymbolToken _symbolTokens[] = {
 size_t _nSymbols = sizeof(_symbolTokens) / sizeof(SymbolToken);
 
 DigraphToken _digraphTokens[] = {
+	DigraphToken('*', MULT, '.', DOT),
 	DigraphToken('=', EQUALS, '>', GOESTO),
 	DigraphToken('=', EQUALS, '=', EQ),
 	DigraphToken('&', B_AND, '&', L_AND),

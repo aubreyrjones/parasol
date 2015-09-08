@@ -15,6 +15,19 @@ struct point_light {
   color: vec4
 }
 
+def any
+  arr =>
+    reduce(map(arr, bool), \l, n => l | n)
+
+def better_any
+  arr =>
+    __(arr, bool, \l, n => l | n)
+
+def L
+  lightPos: vec3, fragPos: vec3 =>    ; no stage scope for L, simple expression function
+    normalize(lightPos - fragPos)
+
+
 phong_lighting {  
   v[v_color] = a[v_inColor: vec4]
 
@@ -23,20 +36,18 @@ phong_lighting {
   v[v_pos: vec3]
 
 
-  def L lightPos: vec3, fragPos: vec3 =>    ; no stage scope for L, simple expression function
-    normalize(lightPos - fragPos)
-
   def f[pointLightContrib] light =>    ; since pointLightContrib has f-stage scope...
-    light.color * max(0, v_normal ` L(light.position, v_pos))    ; ... it closes over the fragment inputs.
+    light.color * max(0, v_normal *. L(light.position, v_pos))    ; ... it closes over the fragment inputs.
 
-  def f[pointLight] light =>
-    {
-      light.color => clamp(pointLightContrib(light), 0, 1)    ; if light.color is truthy, there's your answer
-      _ => vec4(0)    ; _ is the default case
-    }
+  def f[pointLight]
+    light =>
+      {
+        any(light.color) => clamp(pointLightContrib(light), 0, 1)    ; if light.color is truthy, there's your answer
+        _ => vec4(0)    ; _ is the default case
+      }
   
   f[out_color: 0] =    ; inline output index spec
-    __(pointLight,    ; __(f, g, array) is short (and optimized) for reduce(g, map(f, array)).
+    __(pointLight,    ; __(array, f, g) is short (and optimized) for reduce(map(array, f), g).
        \accum, item => accum + item,    ; you could also just use `add` instead, but this is an example
        pointLights)    ; map/reduce is the main form of repetition in Parasol.
   
