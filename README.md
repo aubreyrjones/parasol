@@ -41,7 +41,7 @@ generate errors, but you can refine previously-declared specs with additional in
     }
 
 
-Here's a [longer sample](parasol_examples/phong.prsl).
+Here's a [longer sample](parasol_examples/simplicity.prsl).
 For a more complex example, check out the [Phong-shading example](parasol_examples/phong.prsl).
 
 
