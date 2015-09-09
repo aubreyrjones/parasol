@@ -48,8 +48,9 @@ phong_lighting {
   
   f[out_color: 0] =    ; inline output index spec
     __(point_lights,    ; __(array, f, g) is short (and optimized) for reduce(map(array, f), g).
-       \accum, item => accum + item,    ; you could also just use `add` instead, but this is an example
-       pointLight)    ; map/reduce is the main form of repetition in Parasol.
+       pointLight,
+       \accum, item => accum + item)    ; you could also just use `add` instead, but this is an example
+           ; map/reduce is the main form of repetition in Parasol.
   
 }
 
