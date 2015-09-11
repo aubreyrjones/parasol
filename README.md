@@ -33,9 +33,9 @@ generate errors, but you can refine previously-declared specs with additional in
     
     
         v[v_color] = a[v_inColor: vec4]
-        f[outColor: vec4 0] = v_color    // that's the output index after the type
+        f[outColor: vec4 0] = v_color    ; that's the output index after the type
         
-        a[v_inPosition: 0]    // refine vertex attribute with index spec
+        a[v_inPosition: 0]    ; refine vertex attribute with index spec
         a[v_inColor: 1]
         
     }
