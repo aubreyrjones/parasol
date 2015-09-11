@@ -43,7 +43,7 @@ bad_toon_shader {
 
   f[outColor: 0] = 
     let 
-      ldot = abs(dot(v_normal, lightDir))
+      ldot = abs(v_normal *. lightDir)
       intensity = {
          ldot < 0.25
            => 0.15

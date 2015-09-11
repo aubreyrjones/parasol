@@ -81,7 +81,7 @@ size_t DOTVisitor::dotify(Node *root) {
 		out << "&lambda;" << formattedParams;
 	}
 	else if (nType == 'csst') {
-		out << "&Psi;";
+		out << "&Phi;";
 	}
 	else if (nType == 'strt') {
 		out << "\\{" << static_cast<StructDef *>(root)->name->value << "\\}";
