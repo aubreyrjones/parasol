@@ -20,7 +20,6 @@ SymbolToken _symbolTokens[] = {
 	SymbolToken('-', MINUS),
 	SymbolToken('/', DIV),
 	SymbolToken('\\', LAMBDA),
-	SymbolToken('.', SWIZZLE),
 	SymbolToken('@', ARRAY)
 };
 size_t _nSymbols = sizeof(_symbolTokens) / sizeof(SymbolToken);
@@ -33,7 +32,8 @@ DigraphToken _digraphTokens[] = {
 	DigraphToken('|', B_OR, '|', L_OR),
 	DigraphToken('!', NOT, '=', NOT_EQ),
 	DigraphToken('<', LESS, '=', LESS_EQ),
-	DigraphToken('>', GREATER, '=', GREATER_EQ)
+	DigraphToken('>', GREATER, '=', GREATER_EQ),
+	DigraphToken('.', SWIZZLE, '.', SEQUENCE)
 };
 size_t _nDigraphs = sizeof(_digraphTokens) / sizeof(DigraphToken);
 

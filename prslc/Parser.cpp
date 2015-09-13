@@ -25,11 +25,6 @@ void Parser::offerToken(PRSLToken token) {
 	PRSLParse(lemonParser, token.tokenType, token, this);
 }
 
-void Parser::finish() {
-	PRSLToken fakeTok;
-	PRSLParse(lemonParser, 0, fakeTok, this);
-}
-
 void Parser::error() {
 	std::cout << "Syntax error on line " << currentToken.lineNumber << ". Token type: " << currentToken.tokenType;
 

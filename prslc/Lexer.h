@@ -72,6 +72,8 @@ protected:
 	char c;
 	ITER end;
 
+	bool emittedEnd = false;
+
 	size_t currentLine = 1;
 
 	std::string curString;
@@ -79,12 +81,13 @@ protected:
 
 
 	void advance() {
+		if (atEnd()) return;
 		++cur;
 		c = *cur;
 	}
 
 	void skipToEOL(){
-		while (c != '\n') advance();
+		while (!atEnd() && c != '\n') advance();
 	}
 
 	void skipWhitespace() {
@@ -270,6 +273,7 @@ public:
 			retval.tokenType = 0;
 			retval.lineNumber = currentLine;
 			gotToken = true;
+			emittedEnd = true;
 		}
 		else {
 			gotToken = nextSymbol(retval) || nextNumber(retval) || nextID(retval);
@@ -281,9 +285,11 @@ public:
 		else {
 			throw ParseError(tfm::format("Lexing failed on line %d. Unexpected character '%s'", currentLine, c));
 		}
+
+		return gotToken;
 	}
 
-	bool atEnd() { return cur == end; }
+	bool atEnd() { return cur == end && emittedEnd; }
 };
 
 }

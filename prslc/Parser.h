@@ -31,7 +31,6 @@ public:
 
 
 	void offerToken(PRSLToken token); /// offer the next token
-	void finish(); /// finish parsing
 	StringTable *getStrings() { return &strings; }; /// get the string table (to give to the lexer)
 
 	std::string const& getString(size_t index) { return strings.getString(index); };
@@ -63,13 +62,13 @@ ast::Module *parseModule(ITER start, ITER end) {
 
 	size_t tokenCount = 0;
 	while (true) {
-		lexer.next(token); // throws parse error
-
-		parser.offerToken(token);
-		tokenCount++;
 		if (lexer.atEnd()){
 			break; // end of input
 		}
+		if (!lexer.next(token)) break;
+
+		parser.offerToken(token);
+		tokenCount++;
 	}
 
 	std::cout << "Tokens parsed: " << tokenCount << std::endl;

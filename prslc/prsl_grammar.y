@@ -102,7 +102,7 @@ include_decl(I) ::= INCLUDE id(P) AS id(A).    {I = new IncludeDecl(P, A);}
 %left EQ NOT_EQ.
 %left PLUS MINUS.
 %left MULT DIV DOT.
-%left SWIZZLE.
+%left SWIZZLE SEQUENCE.
 %right NOT ELSE.
 
 // declarative expressions
@@ -138,6 +138,7 @@ expr(E) ::= expr(L) MINUS expr(R).    {E = new BinaryOp(MINUS, L, R);}
 expr(E) ::= expr(L) MULT expr(R).    {E = new BinaryOp(MULT, L, R);}
 expr(E) ::= expr(L) DIV expr(R).    {E = new BinaryOp(DIV, L, R);}
 expr(E) ::= expr(L) DOT expr(R).    {E = new BinaryOp(DOT, L, R);}
+expr(E) ::= expr(L) SEQUENCE expr(R). {E = new BinaryOp(SEQUENCE, L, R);}
 expr(E) ::= NOT expr(I).    {E = new UnaryOp(NOT, I);}
 expr(E) ::= MINUS expr(I). [NOT]    {E = new UnaryOp(MINUS, I);}
 expr(E) ::= L_PAREN expr(I) R_PAREN.    {E = I;}

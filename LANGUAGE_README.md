@@ -77,9 +77,7 @@ Parasol uses the semicolon (`;`) to introduce a comment. A comment lasts until t
 Source Files
 ------------
 
-Parasol source files end with the `prsl` extension.
-
-A Parasol source file must end in a blank line.
+Parasol source file names end with the `prsl` extension.
 
 The `prslc` compiler expects 8-bit ASCII-encoded text. No unicode support is built in, although the extended ASCII
 characters should be fine.
@@ -256,6 +254,65 @@ All together, this makes for some very compact notation for common patterns:
     }
 
 
+OpenGL Stages
+-------------
+
+Since stage scopes are used frequently, Parasol assigns them very short names. For the OpenGL stages, they are as
+follows:
+
+* uniform variables - `u` - ex: `u[projMatrix: mat4]`
+* vertex attributes - `a` - ex: `a[inPos: vec3]`
+* vertex shader - `v` - ex: `v[outNormal] = normMat * inNormal`
+* tesselation control - `tc` - not yet implemented
+* tesselation evaluation - `te` - not yet implemented
+* geometry - `g` - not yet implemented.
+* fragment - `f` - ex: `f[outColor] = texture(tex1, texCoords)`
+
+Note that since no Parasol code sets the values of either uniforms or attributes, the programmer *must* specify the
+types when declaring these interface variables. Their values will come from calls to `glUniform..()` or from vertex
+buffer values. In general, variables whose values are defined by parasol code do not need to have types explicitly
+declared.
+
+
+Let
+---
+
+Sometimes it is nice to have a short name for a very long expression, without having to define a new permanent variable
+or function. Parasol provides the `let` expression for this purpose, which allows you to define multiple variables with
+scope limited to the expression following the `in` clause. A contrived example:
+
+    foo = 
+      let 
+        a = 1
+        b = 2
+        c = 3
+      in vec(a, b, c)
+
+
+Psi Expressions (or, why there is no `if`)
+------------------------------------------
+
+In general, GPUs do very poorly at branching and non-uniform flow control. In general, when a branch is encountered, and
+different executions of a shader in the current execution group take different paths, each execution unit actually
+*executes* both branches. The divergent flow control is simulated by disabling memory writes on the execution units where 
+the branch is "not taken". As a result, Parasol does not support traditional flow control.
+ 
+Instead, Parasol provides psi expressions. Despite the fancy name (borrowed from the collapsing wave function of quantum
+physics), a psi expression is merely a set of conditions and results, enclosed in curly brackets. In its simplest form, 
+it looks almost like an `if` or a `switch` statement in a procedural language.
+
+    apipe {
+      negative = {
+        a < 0    ; first condition 
+          => true    ; first result
+        _ => false}    ; default condition and result
+    }
+
+Within a psi expression, each condition is tested in sequence; the result of the entire expression is the result of the
+first condition that tests true. `_` is a special identifier (not symbol or keyword) within psi expressions that always
+evaluates `true`; when placed as the condition of the last case, it is used as a "catchall" condition. (The last
+condition of the psi expression above could have been written `true => false`, but that's confusing. Thus the `_`
+identifier.)
 
 
 Functions
@@ -269,6 +326,7 @@ A named function is defined by using the keyword `def` followed by the function'
 parameters (with optional types). For example:
 
     def square a => a * a
+    
     def cross a: vec3, b: vec3 => 
       vec3(a.y * b.z - a.z * b.y, 
            a.z * b.x - a.x * b.z,
@@ -284,12 +342,14 @@ Functions are called by specifying the function name, then enclosing the argumen
     }
 
 Functions may be defined in pipelines with stage scope, in which case they close over the stage inputs, and are only
-callable from the stage in which they're defined. 
+callable from the stage in which they're defined (and *not* subsequent stages, like stage-scoped variables). 
 
     apipe {
       a[v_inPos]
     
       def v[calcNorm] u, w => normalize(cross(v_inPos - u, v_inPos - w))
+      
+      v[outNorm] = calcNorm(a[u: vec3], a[w: vec3])
     }
 
 Of course, functions can also be declared in pipelines *without* stage scope. In this case, the pipeline simply serves
@@ -299,52 +359,53 @@ as a namespace.
       def mult a, b => a * b
     }
 
+Functions cannot be recursive, either directly or indirectly. No matter how tempting, it is a compile-time error to
+define something like this:
 
-Let
----
-
-Sometimes it is nice to have a short name for a very long expression, without having to define a new permanent variable
-or function. Parasol provides the `let` expression for this purpose, which allows you to define multiple variables with
-scope limited to the expression following the `in` clause. A contrived example:
-
-    foo = let 
-      a = 1
-      b = 2
-      c = 3
-    in vec(a, b, c)
-
-
-
+    def recFactorial x => {
+      x > 1 
+        => x * recFactorial(x - 1)    ; cannot recursively call yourself
+      _ => 1}
 
 Lambda
 ------
 
-Lambda expressions allow you to define a new function in place. The new function will have access to all variables
-defined in that scope, including `let` variables.
+Lambda expressions allow you to define a new anonymous function in place. The new function will have access to all
+variables defined in that scope, including variables defined with `let` expressions (see below). A lambda is expressed
+with the `\` operator, followed by a parameter list just like a function declaration, and the body expression:
 
-    
+    apipe {
+      u[lights: point_light@16]
+      
+      sumLights = 
+        reduce(lights,
+          \sum, item => sum + item)
+    }
 
 
-Psi Expressions (or, why there is no `if`)
-------------------------------------------
+Map, Reduce (and why there is no `while`)
+-----------------------------------------
 
-In general, GPUs do very poorly at branching and non-uniform flow control. In general, when a branch is encountered, and
-different executions of a shader in the current execution group take different paths, each execution unit actually
-*executes* both branches. The divergent flow control is simulated by disabling memory writes on the execution units where 
-the branch is "not taken". As a result, Parasol does not support traditional flow control.
- 
-Instead, Parasol provides psi expressions. Despite the fancy name (borrowed from the collapsing wave function of quantum
-physics), a psi expression is merely a set of conditions and results, enclosed in curly brackets. In its simplest form, 
-it looks almost like an `if` or a `switch` statement in a procedural language.
+I'm sure you're tired of hearing the excuse, but GPUs do poorly with dynamically-bounded iteration. That is, they don't
+do well with loops like `while (true) {/*do something*/ if (cond) break;}`. They do just fine with loops like `for (int
+= 0; i < 3; i++) do_something(i);`, and they even do okay with changing lengths of iteration so long as all executions
+of a shader take the same number of steps in the loop. In the worst case, divergent looping conditions are handled with
+the same klugey write-mask as conditional branches. 
 
-    def negative a => {
-      a < 0 
-        => true
-      _ => false
-      }
+As a result, Parasol does not include support for traditional looping. Instead, it provides the functions `map` and
+`reduce`. Their signatures look like this, although their actual bodies cannot be implemented in Parasol itself:
 
-Within a psi expression, each condition is tested in sequence; the result of the entire expression is the result of the
-first condition that tests true. `_` is a special identifier (not symbol or keyword) within psi expressions that always
-evaluates `true`; when placed as the condition of the last case, it is used as a "catchall" condition. The last
-condition of the psi expression above could have been written `true => false`, but that's confusing. Thus the `_`
-identifier. 
+
+A Note on Higher Order Functions
+--------------------------------
+
+Parasol includes a handful of higher order functions: `apply`, `map`, `reduce`, etc. These are functions that take a
+function as an argument. Additionally, user functions may accept functions as parameters.
+
+You should be aware that due to the GPU's lack of function pointers, using higher-order functions results in the
+compiler defining a *new* function body for each combination of higher-order function and parameter function. I'll
+restate that for clarity: function composition happens at compile-time, and not at run-time. `apply(x, y, foo)` is a
+different "apply" than `apply(x, y, bar)`.
+
+
+
