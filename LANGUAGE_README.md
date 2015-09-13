@@ -250,7 +250,18 @@ Variables (scoped or otherwise) can also be declared inline:
 All together, this makes for some very compact notation for common patterns:
 
     simple_pipeline {
-      v[gl_Position]
+      v[gl_Position] = 
+        u[projMat: mat4] *
+        u[viewMat: mat4] *
+        u[modelMat: mat4] *
+        a[v_inPos: vec4]
+
+      f[outColor] = 
+        texture(
+          u[tex: sampler2D], 
+          v[v_texCoord] = 
+            a[v_texCoord1: vec2]
+        )
     }
 
 
