@@ -5,7 +5,7 @@
 #include "DOTVisitor.h"
 #include <iostream>
 #include "Lexer.h"
-#include "ParasolPT.h"
+#include "ParasolAST.h"
 
 namespace prsl {
 

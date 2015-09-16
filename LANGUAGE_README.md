@@ -353,7 +353,7 @@ Functions are called by specifying the function name, then enclosing the argumen
     }
 
 Functions may be defined in pipelines with stage scope, in which case they close over the stage inputs, and are only
-callable from the stage in which they're defined (and *not* subsequent stages, like stage-scoped variables). 
+callable from the stage in which they're defined (and, unlike stage-scoped variables, *not* subsequent stages). 
 
     apipe {
       a[v_inPos]

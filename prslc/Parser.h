@@ -3,7 +3,7 @@
 //
 
 #include "Lexer.h"
-#include "ParasolPT.h"
+#include "ParasolAST.h"
 
 #ifndef PARASOL_PARSER_H
 #define PARASOL_PARSER_H

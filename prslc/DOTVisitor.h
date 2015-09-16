@@ -3,7 +3,7 @@
 //
 
 #include <fstream>
-#include "ParasolPT.h"
+#include "ParasolAST.h"
 
 #ifndef PARASOL_DOTVISITOR_H
 #define PARASOL_DOTVISITOR_H

@@ -49,8 +49,8 @@ SET_SOURCE_FILES_PROPERTIES(prslc/prsl_grammar.c PROPERTIES LANGUAGE CXX)
 # build the compiler
 set(COMPILER_SOURCE_FILES
         "${PRSLC_DIR}/prsl_grammar.c"
-        prslc/ParasolPT.h
-        prslc/ParasolPT.cpp
+        prslc/ParasolAST.h
+        prslc/ParasolAST.cpp
         prslc/Lexer.cpp
         prslc/Lexer.h
         prslc/Token.cpp

@@ -18,7 +18,7 @@ class StringTable; // forward declaration of string table.
 struct PRSLToken {
     int tokenType;    /// token type as defined in prsl_grammar.h
 	prsl::StringTable *stringTable;
-	size_t lineNumber;
+	size_t line;
 
     // values are discriminated based on tokenType.
     union {

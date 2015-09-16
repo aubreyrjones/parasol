@@ -271,7 +271,7 @@ public:
 		bool gotToken = false;
 		if (cur == end){
 			retval.tokenType = 0;
-			retval.lineNumber = currentLine;
+			retval.line = currentLine;
 			gotToken = true;
 			emittedEnd = true;
 		}
@@ -280,7 +280,7 @@ public:
 		}
 
 		if (gotToken){
-			retval.lineNumber = currentLine;
+			retval.line = currentLine;
 		}
 		else {
 			throw ParseError(tfm::format("Lexing failed on line %d. Unexpected character '%s'", currentLine, c));

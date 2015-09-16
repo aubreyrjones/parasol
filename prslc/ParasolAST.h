@@ -27,6 +27,8 @@ typedef std::vector<Case*> CaseList;
 typedef uint32_t NodeType;
 
 struct Node {
+	size_t line = 0;
+
 	virtual ~Node() {}
 
 	virtual NodeType type() = 0;

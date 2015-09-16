@@ -26,7 +26,7 @@ void Parser::offerToken(PRSLToken token) {
 }
 
 void Parser::error() {
-	std::cout << "Syntax error on line " << currentToken.lineNumber << ". Token type: " << currentToken.tokenType;
+	std::cout << "Syntax error on line " << currentToken.line << ". Token type: " << currentToken.tokenType;
 
 	switch (currentToken.tokenType) {
 	case INT_LIT:
