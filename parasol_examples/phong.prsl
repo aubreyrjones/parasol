@@ -15,13 +15,6 @@ struct point_light {
   color: vec4
 }
 
-def any
-  arr =>
-    reduce(map(arr, bool), \l, n => l | n)
-
-def L
-  lightPos: vec3, fragPos: vec3 =>    ; no stage scope for L, simple expression function
-    normalize(lightPos - fragPos)
 
 
 phong_lighting {  
@@ -30,6 +23,10 @@ phong_lighting {
   u[point_lights: point_light@16]    ; declares an array of size 16
   v[v_normal: vec3]
   v[v_pos: vec3]
+
+  def L
+    lightPos: vec3, fragPos: vec3 =>    ; no stage scope for L, simple expression function
+      normalize(lightPos - fragPos)
 
 
   def f[pointLightContrib] light =>    ; since pointLightContrib has f-stage scope...

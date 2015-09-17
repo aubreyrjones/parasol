@@ -39,7 +39,6 @@ global_list(G) ::= global_list(GL) global_item(I).    {GL->push_back(I); G = GL;
 
 %type global_item {Node*}
 global_item(G) ::= pipeline(P).    {G = P;}
-global_item(G) ::= function_def(F).    {G = F;}
 global_item(G) ::= struct_def(S).    {G = S;}
 
 

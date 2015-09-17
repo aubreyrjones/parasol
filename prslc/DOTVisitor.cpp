@@ -65,7 +65,7 @@ size_t DOTVisitor::dotify(Node *root) {
 	else if (nType == 'bnop') {
 		std::string tokenString = lookupToken(static_cast<BinaryOp *>(root)->operatorToken);
 		dotSanitize(tokenString);
-		out << tokenString;
+		out << " | <f1> " << tokenString << " | <f2> ";
 	}
 	else if (nType == 'unop') {
 		out << lookupToken(static_cast<UnaryOp *>(root)->operatorToken);
@@ -123,8 +123,12 @@ size_t DOTVisitor::dotify(Node *root) {
 	}
 	else if (nType == 'bnop'){
 		auto op = static_cast<BinaryOp*>(root);
-		dotAndLink(thisIdx, op->left);
-		dotAndLink(thisIdx, op->right);
+
+		dotify(op->left);
+		dotify(op->right);
+
+		out << '"' << thisIdx << "\":<f0> -> " << op->left->nodeID << ";\n";
+		out << '"' << thisIdx << "\":<f2> -> " << op->right->nodeID << ";\n";
 	}
 	else if (nType == 'unop'){
 		auto op = static_cast<UnaryOp*>(root);
@@ -176,7 +180,7 @@ size_t DOTVisitor::dotify(Node *root) {
 			dotAndLink(thisIdx, n);
 		}
 
-		dotAndLink(thisIdx, let->body, "[label=\"in\",labelfloat=true]");
+		dotAndLink(thisIdx, let->body, "[label=\"in\"]");
 	}
 	else if (nType == 'strt'){
 		auto struct_ = static_cast<StructDef*>(root);

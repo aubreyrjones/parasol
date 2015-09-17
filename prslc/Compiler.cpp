@@ -42,7 +42,6 @@ struct IncludeVisitor {
 	IncludeVisitor(LinkUnit *l) : l(l) {}
 
 	void operator()(IncludeDecl *id) {
-		std::cout << "yay" << std::endl;
 		id->targetRef = l->findPipeline(id->includedPipeline->value);
 		curPipe->includes.push_back(id);
 	}

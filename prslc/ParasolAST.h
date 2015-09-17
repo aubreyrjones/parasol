@@ -7,6 +7,7 @@
 #include <sstream>
 #include <stdint.h>
 #include <unordered_map>
+#include "Types.h"
 
 #ifndef PARASOL_PARASOLPT_H
 #define PARASOL_PARASOLPT_H
@@ -47,6 +48,8 @@ struct Expression : public Node {
 	virtual ~Expression() {}
 
 	bool isExpr() override { return true; }
+
+	//Type prslType() {}
 };
 
 struct BinaryOp : public Expression {
@@ -445,6 +448,13 @@ struct Module : public Node {
 	VarDecl* getVariable(std::string const& pipeline, std::string const& var);
 };
 
+
+struct IntrinsicFunction : public FunctionDef {
+
+	IntrinsicFunction(VarDecl *name, ParameterList *params) :
+			FunctionDef(name, params, nullptr)
+	{ }
+};
 
 std::string formatParameterList(ParameterList *params);
 

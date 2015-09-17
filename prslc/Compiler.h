@@ -13,6 +13,7 @@ namespace prsl {
 using namespace ast;
 
 typedef std::vector<ast::Module*> ModuleList;
+typedef std::unordered_map<std::string, Type*> TypeMap;
 
 
 class CallLinker;
@@ -20,11 +21,12 @@ class CallLinker;
 
 class LinkUnit {
 protected:
-	ModuleList modules;
-
-	void linkIncludes();
+	ModuleList modules; /// all modules added to the unit.
+	TypeMap types;  /// all types registered by all modules, plus builtins.
+	SymbolTable builtins;  /// all builtin symbols
 
 	void doModulePasses(ast::Module *mod);  /// compiler passes performed on each module.
+	void linkIncludes();  /// link up includes to target pipelines.
 
 public:
 	LinkUnit();
@@ -42,13 +44,15 @@ public:
 	 * Add a module to this link unit from source code.
 	 * */
 	template <class ITER>
-	void addModule(ITER i, ITER end);
+	void addModule(ITER i, ITER end, std::string const &moduleName);
 };
 
 
 template <class ITER>
-void LinkUnit::addModule(ITER i, ITER end) {
+void LinkUnit::addModule(ITER i, ITER end, std::string const &moduleName) {
 	ast::Module *mod = parseModule(i, end);
+
+	mod->name->value = moduleName;
 
 	doModulePasses(mod);
 

@@ -19,8 +19,7 @@ int main(int argc, char **argv){
 	try {
 		std::ifstream sourceFile(argv[1]);
 
-
-		linkUnit.addModule(FileCharIterator(sourceFile), FileCharIterator());
+		linkUnit.addModule(FileCharIterator(sourceFile), FileCharIterator(), argv[1]);
 
 		linkUnit.link();
 

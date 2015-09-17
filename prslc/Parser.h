@@ -23,7 +23,7 @@ protected:
 
 public:
 	Parser();
-	~Parser();
+	~Parser(); /// note that the destructor DOES NOT free the AST. It's assumed you probably want it.
 
 	Parser(Parser & o) = delete;
 	Parser& operator=(Parser &o) = delete;
