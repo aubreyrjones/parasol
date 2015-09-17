@@ -19,10 +19,6 @@ def any
   arr =>
     reduce(map(arr, bool), \l, n => l | n)
 
-def better_any
-  arr =>
-    __(arr, bool, \l, n => l | n)
-
 def L
   lightPos: vec3, fragPos: vec3 =>    ; no stage scope for L, simple expression function
     normalize(lightPos - fragPos)

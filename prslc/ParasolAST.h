@@ -6,6 +6,7 @@
 #include <vector>
 #include <sstream>
 #include <stdint.h>
+#include <unordered_map>
 
 #ifndef PARASOL_PARASOLPT_H
 #define PARASOL_PARASOLPT_H
@@ -13,21 +14,25 @@
 namespace prsl { namespace ast {
 
 class FunctionDef;
-class PipelineDef;
 class Expression;
 class VarDecl;
 class Node;
 class Case;
+class Pipeline;
+class IncludeDecl;
 
 typedef std::vector<VarDecl*> ParameterList;
 typedef std::vector<Expression*> ArgumentList;
 typedef std::vector<Node*> NodeList;
 typedef std::vector<Case*> CaseList;
 
+typedef std::unordered_map<std::string, Node*> SymbolTable;
+
 typedef uint32_t NodeType;
 
 struct Node {
 	size_t line = 0;
+	size_t nodeID = 0;
 
 	virtual ~Node() {}
 
@@ -336,6 +341,7 @@ struct Let : public Expression {
 struct IncludeDecl : public Node {
 	Ident *includedPipeline = nullptr;
 	Ident *asName = nullptr;
+	Pipeline *targetRef = nullptr;
 
 	IncludeDecl(Ident *toInclude, Ident *as) :
 			includedPipeline(toInclude),
@@ -363,6 +369,9 @@ struct IncludeDecl : public Node {
 struct Pipeline : public Node {
 	Ident *name = nullptr;
 	NodeList *contents = nullptr;
+	SymbolTable functions {};
+	SymbolTable variables {};
+	std::vector<IncludeDecl*> includes {};
 
 	Pipeline(Ident *name, NodeList *contents) :
 			name(name),
@@ -380,6 +389,13 @@ struct Pipeline : public Node {
 	}
 
 	virtual NodeType type() { return 'pipe'; }
+
+	FunctionDef* resolveFunction(std::string const& function);
+	VarDecl* resolveVariable(std::string const& var);
+
+	FunctionDef* getFunction(std::string const& function);
+
+	VarDecl* getVariable(std::string const& var);
 };
 
 struct StructDef : public Node {
@@ -402,13 +418,31 @@ struct StructDef : public Node {
 struct Module : public Node {
 	Ident *name = nullptr;
 	NodeList *globalDecls = nullptr;
+	SymbolTable functions;
+	SymbolTable pipelines;
 
 	Module(std::string const& name, NodeList *globalDecls) :
 			name(new Ident(name)),
-			globalDecls(globalDecls)
+			globalDecls(globalDecls),
+			functions(),
+			pipelines()
 	{}
 
 	virtual NodeType type() { return '_mod'; }
+
+	/** Get a pipeline, or nullptr if no such function exists in that pipeline. */
+	Pipeline* getPipeline(std::string const& pipeline);
+
+	/** Get a function defined at global scope, or nullptr if no such function exists at global scope. */
+	FunctionDef* getGlobalFunction(std::string const& name);
+
+	/** Get a function defined in a particular pipeline, or nullptr if no such function exists in that
+	 * pipeline. */
+	FunctionDef* getPipelineFunction(std::string const& pipeline, std::string const& function);
+
+	/** Get a variable defined in a particular pipeline, or nullptr if no such variable exists in that
+	 * pipeline. */
+	VarDecl* getVariable(std::string const& pipeline, std::string const& var);
 };
 
 

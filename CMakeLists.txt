@@ -31,7 +31,7 @@ add_executable(lemon lemon/lemon.c)
 set(LEMON_DIR
         "${CMAKE_CURRENT_SOURCE_DIR}/lemon")
 set(PRSLC_DIR
-    "${CMAKE_CURRENT_SOURCE_DIR}/prslc")
+        "${CMAKE_CURRENT_SOURCE_DIR}/prslc")
 
 # now we use lemon to build the parser from the grammar file
 
@@ -54,7 +54,16 @@ set(COMPILER_SOURCE_FILES
         prslc/Lexer.cpp
         prslc/Lexer.h
         prslc/Token.cpp
-        prslc/Token.h prslc/Parser.cpp prslc/Parser.h prslc/DOTVisitor.cpp prslc/DOTVisitor.h)
+        prslc/Token.h prslc/Parser.cpp
+        prslc/Parser.h
+        prslc/DOTVisitor.cpp
+        prslc/DOTVisitor.h
+        prslc/IDVisitor.cpp
+        prslc/IDVisitor.h
+        prslc/Visitor.cpp
+        prslc/Visitor.h
+        prslc/BasicPasses.cpp
+        prslc/BasicPasses.h prslc/Compiler.cpp prslc/Compiler.h)
 
 add_library(prsl STATIC ${COMPILER_SOURCE_FILES})
 

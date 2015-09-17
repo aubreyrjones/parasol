@@ -12,18 +12,21 @@ namespace prsl {
 
 class DOTVisitor {
 protected:
-	size_t nodeIdx = 0;
 	std::ofstream out;
 	void printNodeType(ast::NodeType type);
 
 	template <class NTYPE>
-	void dotAndLink(size_t thisIdx, NTYPE *n) {
+	void dotAndLink(size_t thisIdx, NTYPE *n, char const* edgeLabel = nullptr) {
 		if (!n) return;
 		size_t i = dotify(n);
-		out << thisIdx << " -> " << i << ";\n";
-	}
 
-	size_t intermediate(size_t parent, std::string const& name);
+		out << thisIdx << " -> " << i;
+
+		if (edgeLabel) {
+			out << " " << edgeLabel;
+		}
+		out << ";\n";
+	}
 
 public:
 

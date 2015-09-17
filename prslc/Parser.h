@@ -4,6 +4,7 @@
 
 #include "Lexer.h"
 #include "ParasolAST.h"
+#include "IDVisitor.h"
 
 #ifndef PARASOL_PARSER_H
 #define PARASOL_PARSER_H
@@ -73,7 +74,12 @@ ast::Module *parseModule(ITER start, ITER end) {
 
 	std::cout << "Tokens parsed: " << tokenCount << std::endl;
 
-	return new ast::Module("unnamed", parser.getGlobals());
+	ast::Module *mod = new ast::Module("unnamed", parser.getGlobals());
+
+	IDVisitor ids;
+	ids(mod);
+
+	return mod;
 }
 
 }

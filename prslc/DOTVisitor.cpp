@@ -35,13 +35,13 @@ void dotSanitize(std::string &str) {
 }
 
 size_t DOTVisitor::dotify(Node *root) {
-	if (!root) return nodeIdx;
+	if (!root) return 0;
 
-	size_t thisIdx = nodeIdx++;
+	size_t thisIdx = root->nodeID;
 
 	NodeType nType = root->type();
 
-	out << "node [label=\"";
+	out << "node [shape=record, label=\"<f0> ";
 
 	if (nType == '_int' ) {
 		out << static_cast<Integer *>(root)->value;
@@ -74,7 +74,12 @@ size_t DOTVisitor::dotify(Node *root) {
 		out << static_cast<VarDecl *>(root)->toString();
 	}
 	else if (nType == 'fncl') {
-		out << "call:" << static_cast<FunctionCall *>(root)->functionName->value;
+		auto fncl = static_cast<FunctionCall *>(root);
+		out << fncl->functionName->value;
+		for (int i = 0; i < fncl->arguments->size(); i++){
+			int idx = i + 1;
+			out << "| <f" << idx << "> " << i;
+		}
 	}
 	else if (nType == 'lmbd') {
 		std::string formattedParams = formatParameterList(static_cast<Lambda *>(root)->parameters);
@@ -83,15 +88,20 @@ size_t DOTVisitor::dotify(Node *root) {
 	else if (nType == 'csst') {
 		out << "&Psi;";
 	}
+	else if (nType == 'case') {
+		out << "cond | <f1> result";
+	}
 	else if (nType == 'strt') {
 		out << "\\{" << static_cast<StructDef *>(root)->name->value << "\\}";
 	}
 	else if (nType == 'incl') {
-		out << static_cast<IncludeDecl*>(root)->toString();
+		auto id = static_cast<IncludeDecl*>(root);
+		out << id->toString();
 	}
 	else {
 		printNodeType(root->type());
 	}
+	//out << "|<f1>: " << root->line;
 	out << "\"";
 	out << "] " << thisIdx;
 	out << ";\n";
@@ -101,8 +111,7 @@ size_t DOTVisitor::dotify(Node *root) {
 
 		if (mod->globalDecls) {
 			for (Node *n : *mod->globalDecls) {
-				//dotAndLink(thisIdx, n);
-				if (n) dotify(n);
+				dotAndLink(thisIdx, n);
 			}
 		}
 	}
@@ -127,15 +136,14 @@ size_t DOTVisitor::dotify(Node *root) {
 	}
 	else if (nType == 'fncl'){
 		auto fn = static_cast<FunctionCall*>(root);
+		int i = 1;
 		for (Node *n: *fn->arguments){
-			dotAndLink(thisIdx, n);
+			dotify(n);
+
+			out << '"' << thisIdx << "\":<f" << i << "> -> " << n->nodeID << ";\n";
+
+			++i;
 		}
-	}
-	else if (nType == '_if_'){
-		auto if_ = static_cast<IfExpr*>(root);
-		dotAndLink(thisIdx, if_->condition);
-		dotAndLink(thisIdx, if_->thenExpr);
-		dotAndLink(thisIdx, if_->elseExpr);
 	}
 	else if (nType == 'lmbd'){
 		auto lambda = static_cast<Lambda*>(root);
@@ -151,8 +159,15 @@ size_t DOTVisitor::dotify(Node *root) {
 	else if (nType == 'case'){
 		auto case_ = static_cast<Case*>(root);
 
-		dotAndLink(thisIdx, case_->condition);
-		dotAndLink(thisIdx, case_->result);
+		dotify(case_->condition);
+		dotify(case_->result);
+
+		out << '"' << thisIdx << "\":<f0> -> " << case_->condition->nodeID << ";\n";
+		out << '"' << thisIdx << "\":<f1> -> " << case_->result->nodeID << ";\n";
+
+
+		//dotAndLink(thisIdx, case_->condition);
+		//dotAndLink(thisIdx, case_->result);
 	}
 	else if (nType == '_let'){
 		auto let = static_cast<Let*>(root);
@@ -161,12 +176,18 @@ size_t DOTVisitor::dotify(Node *root) {
 			dotAndLink(thisIdx, n);
 		}
 
-		dotAndLink(intermediate(thisIdx, "in"), let->body);
+		dotAndLink(thisIdx, let->body, "[label=\"in\",labelfloat=true]");
 	}
 	else if (nType == 'strt'){
 		auto struct_ = static_cast<StructDef*>(root);
 		for (Node *n : *struct_->members){
 			dotAndLink(thisIdx, n);
+		}
+	}
+	else if (nType == 'incl') {
+		auto id = static_cast<IncludeDecl*>(root);
+		if (id->targetRef) {
+			out << thisIdx << " -> " << id->targetRef->nodeID << "[style=dotted];\n";
 		}
 	}
 
@@ -189,11 +210,4 @@ DOTVisitor::~DOTVisitor() {
 	out << "}\n";
 }
 
-size_t DOTVisitor::intermediate(size_t parent, std::string const &name) {
-	size_t thisIdx = nodeIdx++;
-	out << "node [label=" << name << "] " << thisIdx << ";\n";
-	out << parent << " -> " << thisIdx << ";\n";
-
-	return thisIdx;
-}
 }
