@@ -336,12 +336,14 @@ in which case it's only callable from expressions within that pipeline or within
 A named function is defined by using the keyword `def` followed by the function's name, then a comma-separated list of
 parameters (with optional types). For example:
 
-    def square a => a * a
+    apipe {
+      def square a => a * a
     
-    def cross a: vec3, b: vec3 => 
-      vec3(a.y * b.z - a.z * b.y, 
-           a.z * b.x - a.x * b.z,
-           a.x * b.y - a.z - b.x)
+      def cross a: vec3, b: vec3 => 
+        vec3(a.y * b.z - a.z * b.y, 
+             a.z * b.x - a.x * b.z,
+             a.x * b.y - a.z - b.x)
+    }
 
 
 Functions are called by specifying the function name, then enclosing the arguments in parentheses:
@@ -364,11 +366,8 @@ callable from the stage in which they're defined (and, unlike stage-scoped varia
     }
 
 Of course, functions can also be declared in pipelines *without* stage scope. In this case, the pipeline simply serves
-as a namespace.
-
-    apipe {
-      def mult a, b => a * b
-    }
+as a namespace. Functions may not be declared at global scope: every function must be declared within a pipeline.
+Language built-ins are the exception, being available in any scope without needing to include any particular pipeline. 
 
 Functions cannot be recursive, either directly or indirectly. No matter how tempting, it is a compile-time error to
 define something like this:
