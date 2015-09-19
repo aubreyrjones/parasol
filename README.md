@@ -90,6 +90,14 @@ nor the executable itself is necessary for using any Parasol module; it's necess
 module.
 
 
+Current Project Status
+----------------------
+
+100% of the example code parses, generating a complete AST.
+
+Currently working on: type analysis.
+
+
 Anticipated Questions
 ---------------------
 
