@@ -56,7 +56,7 @@ void applyVisitor(V & v, ast::Node *root){
 		v(lambda->body);
 	}
 	else if (nType == 'csst'){
-		auto cases = static_cast<CaseSet*>(root);
+		auto cases = static_cast<PsiExpr *>(root);
 
 		for (Node *n : *(cases->cases)){
 			v(n);
@@ -150,7 +150,7 @@ void applyTypedVisitor(V & v, Node *root) {
 		applyTypedVisitor(v, lambda->body);
 	}
 	else if (nType == 'csst'){
-		auto cases = static_cast<CaseSet*>(root);
+		auto cases = static_cast<PsiExpr *>(root);
 
 		v(cases);
 

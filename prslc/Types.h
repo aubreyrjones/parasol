@@ -3,17 +3,29 @@
 //
 
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 #ifndef PARASOL_TYPES_H
 #define PARASOL_TYPES_H
 
 namespace prsl {
 
+struct Type;
+
+typedef std::unordered_map<std::string, Type*> TypeSpace;
+
 struct Type {
-	//virtual std::string const& name() const { return "<NONE>"; }
+	std::string name;
+
+	Type(std::string const& n) : name(n) {}
 };
 
 
+
+
+
+void addBuiltinTypes(TypeSpace& table);
 
 }
 

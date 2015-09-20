@@ -13,8 +13,6 @@ namespace prsl {
 using namespace ast;
 
 typedef std::vector<ast::Module*> ModuleList;
-typedef std::unordered_map<std::string, Type*> TypeMap;
-
 
 class CallLinker;
 
@@ -22,8 +20,8 @@ class CallLinker;
 class LinkUnit {
 protected:
 	ModuleList modules; /// all modules added to the unit.
-	TypeMap types;  /// all types registered by all modules, plus builtins.
-	SymbolTable builtins;  /// all builtin symbols
+	TypeSpace types {};  /// all types registered by all modules, plus builtins.
+	SymbolTable builtins {};  /// all builtin symbols
 
 	void doModulePasses(ast::Module *mod);  /// compiler passes performed on each module.
 	void linkIncludes();  /// link up includes to target pipelines.

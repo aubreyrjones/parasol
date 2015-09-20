@@ -154,7 +154,7 @@ size_t DOTVisitor::dotify(Node *root) {
 		dotAndLink(thisIdx, lambda->body);
 	}
 	else if (nType == 'csst'){
-		auto cases = static_cast<CaseSet*>(root);
+		auto cases = static_cast<PsiExpr *>(root);
 
 		for (Node *n : *(cases->cases)){
 			dotAndLink(thisIdx, n);

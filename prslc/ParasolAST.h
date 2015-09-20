@@ -34,6 +34,7 @@ typedef uint32_t NodeType;
 struct Node {
 	size_t line = 0;
 	size_t nodeID = 0;
+	Node *parent = nullptr;
 
 	virtual ~Node() {}
 
@@ -45,11 +46,14 @@ struct Node {
 };
 
 struct Expression : public Node {
+	std::string type;
+
+	Expression() : type() {}
+
 	virtual ~Expression() {}
 
 	bool isExpr() override { return true; }
-
-	//Type prslType() {}
+	bool isTypeBound() const { return !type.empty(); }
 };
 
 struct BinaryOp : public Expression {
@@ -61,7 +65,10 @@ struct BinaryOp : public Expression {
 			operatorToken(op),
 			left(left),
 			right(right)
-	{}
+	{
+		left->parent = this;
+		right->parent = this;
+	}
 
 	virtual ~BinaryOp() {
 		if (left) delete left;
@@ -78,7 +85,9 @@ struct UnaryOp : public Expression {
 	UnaryOp(int op, Expression *argument) :
 			operatorToken(op),
 			argument(argument)
-	{}
+	{
+		argument->parent = this;
+	}
 
 	virtual ~UnaryOp() {
 		if (argument) delete argument;
@@ -135,26 +144,6 @@ struct TypeIdent : public Ident {
 	};
 };
 
-struct IfExpr : public Expression {
-	Expression *condition = nullptr;
-	Expression *thenExpr = nullptr;
-	Expression *elseExpr = nullptr;
-
-	IfExpr(Expression *cond, Expression *then, Expression *elseExpr) :
-			condition(cond),
-			thenExpr(then),
-			elseExpr(elseExpr)
-	{}
-
-	virtual ~IfExpr() {
-		if (condition) delete condition;
-		if (thenExpr) delete thenExpr;
-		if (elseExpr) delete elseExpr;
-	}
-
-	virtual NodeType type() { return '_if_'; }
-};
-
 struct VarDecl : public Expression {
 	Ident *varName = nullptr;
 	TypeIdent *varType = nullptr;
@@ -165,14 +154,23 @@ struct VarDecl : public Expression {
 			varName(varName),
 			varType(varType),
 			varIndex(varIndex)
-	{}
+	{
+		if (varName) varName->parent = this;
+		if (varType) varType->parent = this;
+		if (varIndex) varIndex->parent = this;
+	}
 
 	VarDecl(Ident *varName, TypeIdent *varType, Integer *varIndex, Ident *scope) :
 			varName(varName),
 			varType(varType),
 			varIndex(varIndex),
 			scope(scope)
-	{}
+	{
+		if (varName) varName->parent = this;
+		if (varType) varType->parent = this;
+		if (varIndex) varIndex->parent = this;
+		if (scope) scope->parent = this;
+	}
 
 
 	VarDecl(VarDecl *o, Ident *scope) : // steal from o.
@@ -185,6 +183,11 @@ struct VarDecl : public Expression {
 		o->varType = nullptr;
 		o->varIndex = nullptr;
 		o->scope = nullptr;
+
+		if (varName) varName->parent = this;
+		if (varType) varType->parent = this;
+		if (varIndex) varIndex->parent = this;
+		if (scope) scope->parent = this;
 	}
 
 
@@ -235,7 +238,15 @@ struct FunctionCall : public Expression {
 	FunctionCall(Ident *name, ArgumentList *args) :
 			functionName(name),
 			arguments(args)
-	{}
+	{
+		functionName->parent = this;
+
+		if (arguments) {
+			for (Node *n : *arguments){
+				n->parent = this;
+			}
+		}
+	}
 
 	virtual ~FunctionCall() {
 		if (functionName) {
@@ -262,11 +273,23 @@ struct FunctionDef : public Node {
 			name(name),
 			parameters(params),
 			body(body)
-	{}
+	{
+		name->parent = this;
+		body->parent = this;
+
+		if (params) {
+			for (Node *n : *params){
+				n->parent = this;
+			}
+		}
+	}
 
 	virtual ~FunctionDef() {
 		if (name) delete name;
-		if (parameters) delete parameters;
+		if (parameters) {
+			for (auto p : *parameters) delete p;
+			delete parameters;
+		}
 		if (body) delete body;
 	}
 
@@ -280,10 +303,17 @@ struct Lambda : public Expression {
 	Lambda(ParameterList *params, Expression *body) :
 			parameters(params),
 			body(body)
-	{}
+	{
+		if (parameters)
+			for (auto p : *parameters)
+				p->parent = this;
+	}
 
 	virtual ~Lambda() {
-		if (parameters) delete parameters;
+		if (parameters) {
+			for (auto p : *parameters) delete p;
+			delete parameters;
+		}
 		if (body) delete body;
 	}
 
@@ -297,7 +327,10 @@ struct Case : public Node {
 	Case(Expression *cond, Expression *res) :
 			condition(cond),
 			result(res)
-	{}
+	{
+		cond->parent = this;
+		res->parent = this;
+	}
 
 	virtual ~Case() {
 		if (condition) delete condition;
@@ -307,12 +340,14 @@ struct Case : public Node {
 	virtual NodeType type() { return 'case'; }
 };
 
-struct CaseSet : public Expression {
+struct PsiExpr : public Expression {
 	CaseList *cases = nullptr;
 
-	CaseSet(CaseList *cases) : cases(cases) {}
+	PsiExpr(CaseList *cases) : cases(cases) {
+		if (cases) for (auto p : *cases) p->parent = this;
+	}
 
-	virtual ~CaseSet(){
+	virtual ~PsiExpr(){
 		if (cases){
 			for (Case *c : *cases){
 				delete c;
@@ -331,10 +366,16 @@ struct Let : public Expression {
 	Let(NodeList *assignments, Expression *body) :
 			assignments(assignments),
 			body(body)
-	{}
+	{
+		for (auto p : *assignments) p->parent = this;
+		body->parent = this;
+	}
 
 	virtual ~Let() {
-		if (assignments) delete assignments;
+		if (assignments) {
+			for (auto p : *assignments) delete p;
+			delete assignments;
+		}
 		if (body) delete body;
 	}
 
@@ -349,7 +390,10 @@ struct IncludeDecl : public Node {
 	IncludeDecl(Ident *toInclude, Ident *as) :
 			includedPipeline(toInclude),
 			asName(as)
-	{}
+	{
+		includedPipeline->parent = this;
+		if (asName) asName->parent = this;
+	}
 
 	virtual ~IncludeDecl() {
 		if (includedPipeline) delete includedPipeline;
@@ -379,7 +423,10 @@ struct Pipeline : public Node {
 	Pipeline(Ident *name, NodeList *contents) :
 			name(name),
 			contents(contents)
-	{}
+	{
+		name->parent = this;
+		if (contents) for (auto p : *contents) p->parent = this;
+	}
 
 	virtual ~Pipeline() {
 		if (name) delete name;
@@ -408,7 +455,10 @@ struct StructDef : public Node {
 	StructDef(Ident *name, NodeList *members) :
 			name(name),
 			members(members)
-	{}
+	{
+		name->parent = this;
+		if (members) for (auto p : *members) p->parent = this;
+	}
 
 	virtual ~StructDef() {
 		if (name) delete name;
@@ -429,7 +479,18 @@ struct Module : public Node {
 			globalDecls(globalDecls),
 			functions(),
 			pipelines()
-	{}
+	{
+		this->name->parent = this;
+		if (globalDecls) for (auto p : *globalDecls) p->parent = this;
+	}
+
+	virtual ~Module() {
+		if (name) delete name;
+		if (globalDecls) {
+			for (auto p : *globalDecls) delete p;
+			delete globalDecls;
+		}
+	}
 
 	virtual NodeType type() { return '_mod'; }
 

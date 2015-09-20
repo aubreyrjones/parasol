@@ -62,8 +62,12 @@ set(COMPILER_SOURCE_FILES
         prslc/IDVisitor.h
         prslc/Visitor.cpp
         prslc/Visitor.h
-        prslc/BasicPasses.cpp
-        prslc/BasicPasses.h prslc/Compiler.cpp prslc/Compiler.h prslc/Types.cpp prslc/Types.h prslc/Builtins.cpp prslc/Builtins.h)
+        prslc/Compiler.cpp
+        prslc/Compiler.h
+        prslc/Types.cpp
+        prslc/Types.h
+        prslc/Builtins.cpp
+        prslc/Builtins.h)
 
 add_library(prsl STATIC ${COMPILER_SOURCE_FILES})
 

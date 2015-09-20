@@ -6,6 +6,7 @@
 #define PARASOL_BUILTINS_H
 
 #include "ParasolAST.h"
+#include "Types.h"
 
 namespace prsl {
 

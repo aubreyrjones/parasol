@@ -10,7 +10,7 @@ namespace prsl {
 using namespace ast;
 
 prsl::LinkUnit::LinkUnit() {
-
+	addBuiltinTypes(types);
 }
 
 void globalDeclPass(Module *mod) {

@@ -94,7 +94,7 @@ include_decl(I) ::= INCLUDE(ITOK) id(P) AS id(A).    {I = new IncludeDecl(P, A);
 %right LAMBDA LET.
 %left GOESTO.
 %left COMMA FNCALL.
-%left EQUALS.
+%right EQUALS.
 %left L_AND L_OR.
 %left B_AND B_OR.
 %left LESS LESS_EQ GREATER GREATER_EQ.
@@ -171,8 +171,8 @@ unscoped_assignment_list(AL) ::= .    {AL = new NodeList;}
 unscoped_assignment_list(A) ::= unscoped_assignment_list(AL) unscoped_assignment_expr(E).    {AL->push_back(E); A = AL;}
 
 
-%type case_set {CaseSet*}
-case_set(CS) ::= L_CURLY(LCTOK) case_list(CL) R_CURLY.    {CS = new CaseSet(CL); CS->line = LCTOK.line;}
+%type case_set {PsiExpr*}
+case_set(CS) ::= L_CURLY(LCTOK) case_list(CL) R_CURLY.    {CS = new PsiExpr(CL); CS->line = LCTOK.line;}
 
 
 %type case_list {CaseList*}
