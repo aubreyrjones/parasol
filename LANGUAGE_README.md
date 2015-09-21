@@ -329,9 +329,8 @@ identifier.)
 Functions
 ---------
 
-Parasol supports the grouping of common expressions into functions. A function may be defined at the top level of a
-file, in which case it has global scope and may be called anywhere. Or, a function may be defined within a pipeline,
-in which case it's only callable from expressions within that pipeline or within another pipeline including the first.  
+Parasol supports the grouping of common expressions into functions. A function must be defined within a pipeline, and is
+only accessible to expressions within that pipeline or other pipelines that include it.
 
 A named function is defined by using the keyword `def` followed by the function's name, then a comma-separated list of
 parameters (with optional types). For example:
@@ -396,14 +395,59 @@ with the `\` operator, followed by a parameter list just like a function declara
 Map, Reduce (and why there is no `while`)
 -----------------------------------------
 
-I'm sure you're tired of hearing the excuse, but GPUs do poorly with dynamically-bounded iteration. That is, they don't
+I'm sure you're tired of hearing the reasoning, but GPUs do poorly with dynamically-bounded iteration. That is, they don't
 do well with loops like `while (true) {/*do something*/ if (cond) break;}`. They do just fine with loops like `for (int
 = 0; i < 3; i++) do_something(i);`, and they even do okay with changing lengths of iteration so long as all executions
 of a shader take the same number of steps in the loop. In the worst case, divergent looping conditions are handled with
 the same klugey write-mask as conditional branches. 
 
-As a result, Parasol does not include support for traditional looping. Instead, it provides the functions `map` and
-`reduce`. Their signatures look like this, although their actual bodies cannot be implemented in Parasol itself:
+As a result, Parasol does not include support for traditional looping.
+
+Instead, Parasol provides the special functions `map(array, f)` and `reduce(array, f)` (and `__`). `map` applies a
+function to each element of an array, returning an array of the same size as the input. 
+
+    struct fog_light {
+      color: vec4
+      position: vec3
+    }
+    
+    def attenuate viewPos: vec3, light: fog_light =>
+      let 
+        dist = viewPos - light.position
+        distSq = dist * dist
+        epsilon = 1.0 / 50000
+      in
+        light.color * {
+          distSq < epsilon 
+            => 1 
+          _ => 1 / distSq}
+    
+    processed_lights {
+      f[processedLights: vec4@16] =    ; we don't need the type spec here, but it's included for clarity
+        map(u[lights: light@16], 
+          \light => attenuate(u[camPos: vec3], light)
+        ) 
+    }
+
+`reduce` applies a function cumulatively to successive elements in an array, producing a single output result.
+
+    apipe {
+      f[lightAccum] = 
+        reduce(processedLights, 
+          \accum, item => accum + item)
+    }
+
+Parasol also offers a second form of `reduce` that takes an inital value. Using this form allows reduce to output a
+different type than is contained in the target array.
+
+    apipe {
+          f[lightAccum] = 
+            reduce(processedLights,
+              vec4(0, 0, 0, 0),
+              \accum, item => accum + item)
+    }
+
+Finally, the function `__(array, f1, f2)` is a shortcut for the idiom: `reduce(map(array, f1), f2)`.
 
 
 A Note on Higher Order Functions
