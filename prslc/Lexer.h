@@ -57,6 +57,7 @@ inline bool isSpace(char const& c) {
 	return std::isblank(c) || c == '\n' || c == '\r';
 }
 
+/** Get a string representing a token type. */
 std::string lookupToken(int token);
 
 /**

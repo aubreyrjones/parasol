@@ -1,5 +1,7 @@
+build
 include
 
+*.dot*
 .idea
 
 # Compiled Object files

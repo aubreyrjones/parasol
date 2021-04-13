@@ -5,6 +5,7 @@
 #include "Lexer.h"
 #include "ParasolAST.h"
 #include "IDVisitor.h"
+#include <memory>
 
 #ifndef PARASOL_PARSER_H
 #define PARASOL_PARSER_H
@@ -53,7 +54,7 @@ inline std::string const& getstr(prsl::Parser *p, size_t index){
 
 
 template <class ITER>
-ast::Module *parseModule(ITER start, ITER end) {
+std::shared_ptr<ast::Module> parseModule(ITER start, ITER end) {
 
 	Parser parser;
 
@@ -74,7 +75,7 @@ ast::Module *parseModule(ITER start, ITER end) {
 
 	std::cout << "Tokens parsed: " << tokenCount << std::endl;
 
-	ast::Module *mod = new ast::Module("unnamed", parser.getGlobals());
+	auto mod = ast::make_node<ast::Module>("unnamed", parser.getGlobals());
 
 	IDVisitor ids;
 	ids(mod);
