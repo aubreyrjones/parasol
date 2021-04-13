@@ -1,0 +1,15 @@
+trivial_test {
+    def identity a, b => a
+    def constant => blah
+    def typed x: i32, y: float => x
+
+    just_some_spam
+    just_some_array_spam?: blah@24
+    some_foo: foo_type
+    BLUBBER[bar]
+}
+
+struct trivial_struct {
+
+}
+

@@ -1,3 +1,8 @@
 trivial_test {
 
 }
+
+struct second_trivial_test {
+
+}
+

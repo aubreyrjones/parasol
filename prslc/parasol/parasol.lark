@@ -1,0 +1,46 @@
+%import common.WS
+%ignore WS
+
+%import common.LETTER
+%import common.DIGIT
+%import common.FLOAT
+%import common.INT
+
+
+PIDENT : ("_"|"?"|LETTER|DIGIT)+
+
+typeid : PIDENT
+       | (PIDENT "@" array_spec)
+array_spec : INT
+namedef : PIDENT
+
+module : global_item+
+
+?global_item : pipeline
+             | struct_def
+
+pipeline: namedef "{" pipeline_item* "}"
+struct_def: "struct" PIDENT "{" "}"
+
+?pipeline_item : function_def
+               | any_var_decl
+//              | assignment_expr
+//              | include_decl
+
+function_def : "def" namedef [arg_list] "=>" function_body_def
+
+?arg_list : var_decl
+          | arg_list "," var_decl
+
+function_body_def : expr
+
+
+?any_var_decl : var_decl | scoped_var_decl
+var_decl : PIDENT
+         | (PIDENT ":" typeid)
+scoped_var_decl : PIDENT "[" var_decl "]"
+
+
+// Expressions
+
+expr : PIDENT
