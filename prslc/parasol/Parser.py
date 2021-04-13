@@ -14,3 +14,7 @@ def parse(filename):
     with open(filename, 'r') as source:
         return make_parser().parse(source.read())
 
+if __name__ == '__main__':
+    import sys
+    print(parse(sys.argv[1]).pretty())
+    pass
