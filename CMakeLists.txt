@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(parasol)
 
-# sorry folks, it's gotta be c++11. If you aren't paying me, I'm not going back!
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wno-multichar -std=c++11")
+# sorry folks, it's gotta be c++17. If you aren't paying me, I'm not going back!
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wno-multichar -std=c++17")
 
 # this brings in our partial, headers-only subset of boost
 include_directories(include)
