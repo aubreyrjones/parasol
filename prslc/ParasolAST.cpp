@@ -7,12 +7,12 @@
 
 namespace prsl {namespace ast {
 
-std::string formatParameterList(shared_ptr<ParameterList> const& params) {
+std::string formatParameterList(ParameterList *params) {
 	if (!params || params->empty()) return std::string("");
 
 	std::stringstream sstream;
 
-	auto frmt = [&sstream](shared_ptr<VarDecl> const& param) -> void {
+	auto frmt = [&sstream](VarDecl *param) -> void {
 		sstream << param->toString();
 	};
 
@@ -27,19 +27,19 @@ std::string formatParameterList(shared_ptr<ParameterList> const& params) {
 	return std::string(sstream.str());
 }
 
-shared_ptr<FunctionDef> Module::getGlobalFunction(std::string const &name) {
+FunctionDef *Module::getGlobalFunction(std::string const &name) {
 
 	SymbolTable::iterator it = functions.find(name);
 	if (it == functions.end()){
 		return nullptr;
 	}
 
-	return std::dynamic_pointer_cast<FunctionDef>(it->second);
+	return static_cast<FunctionDef*>(it->second);
 }
 
-shared_ptr<FunctionDef> Module::getPipelineFunction(std::string const &pipeline, std::string const &function) {
+FunctionDef *Module::getPipelineFunction(std::string const &pipeline, std::string const &function) {
 
-	auto pipe = getPipeline(pipeline);
+	Pipeline *pipe = getPipeline(pipeline);
 	if (!pipe){
 		return nullptr;
 	}
@@ -47,37 +47,37 @@ shared_ptr<FunctionDef> Module::getPipelineFunction(std::string const &pipeline,
 	return pipe->getFunction(function);
 }
 
-shared_ptr<Pipeline> Module::getPipeline(std::string const &pipeline) {
+Pipeline *Module::getPipeline(std::string const &pipeline) {
 	SymbolTable::iterator it = pipelines.find(pipeline);
 
 	if (it == pipelines.end()){
 		return nullptr;
 	}
 
-	return std::dynamic_pointer_cast<Pipeline>(it->second);
+	return static_cast<Pipeline*>(it->second);
 }
 
-shared_ptr<FunctionDef> Pipeline::getFunction(std::string const &function) {
+FunctionDef *Pipeline::getFunction(std::string const &function) {
 	SymbolTable::iterator it = functions.find(function);
 
 	if (it == functions.end()){
 		return nullptr;
 	}
 
-	return std::dynamic_pointer_cast<FunctionDef>(it->second);
+	return static_cast<FunctionDef*>(it->second);
 }
 
-shared_ptr<VarDecl> Pipeline::getVariable(std::string const &var) {
+VarDecl *Pipeline::getVariable(std::string const &var) {
 	SymbolTable::iterator it = variables.find(var);
 	if (it == variables.end()){
 		return nullptr;
 	}
 
-	return std::dynamic_pointer_cast<VarDecl>(it->second);
+	return static_cast<VarDecl*>(it->second);
 }
 
-shared_ptr<VarDecl> Module::getVariable(std::string const &pipeline, std::string const &var) {
-	auto pipe = getPipeline(pipeline);
+VarDecl *Module::getVariable(std::string const &pipeline, std::string const &var) {
+	Pipeline* pipe = getPipeline(pipeline);
 	if (!pipe){
 		return nullptr;
 	}
@@ -85,8 +85,8 @@ shared_ptr<VarDecl> Module::getVariable(std::string const &pipeline, std::string
 	return pipe->getVariable(var);
 }
 
-shared_ptr<FunctionDef> Pipeline::resolveFunction(std::string const &function) {
-	auto retval = getFunction(function);
+FunctionDef *Pipeline::resolveFunction(std::string const &function) {
+	FunctionDef* retval = getFunction(function);
 
 	if (retval) return retval;
 
@@ -98,8 +98,8 @@ shared_ptr<FunctionDef> Pipeline::resolveFunction(std::string const &function) {
 	return nullptr;
 }
 
-shared_ptr<VarDecl> Pipeline::resolveVariable(std::string const &var) {
-	auto retval = getVariable(var);
+VarDecl *Pipeline::resolveVariable(std::string const &var) {
+	VarDecl* retval = getVariable(var);
 
 	if (retval) return retval;
 

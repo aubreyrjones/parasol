@@ -21,6 +21,7 @@ class LinkUnit {
 protected:
 	ModuleList modules; /// all modules added to the unit.
 	TypeSpace types {};  /// all types registered by all modules, plus builtins.
+	SymbolTable builtins {};  /// all builtin symbols
 
 	void doModulePasses(ast::Module *mod);  /// compiler passes performed on each module.
 	void linkIncludes();  /// link up includes to target pipelines.

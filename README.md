@@ -48,12 +48,6 @@ There's also a [language readme](LANGUAGE_README.md) that provides information o
 should be considered entirely and completely unstable right now.
 
 
-What The Hell is Going On?
---------------------------
-
-According to git, I haven't touched this project since 2015. I'm putting some more work in on it now, but this time I'm writing the compiler in Python. Why? Because my time on this planet is limited and I'm tired of wasting it on boring parts of programs. By writing in Python, I can ignore a lot of time-consuming design problems that quicly become apparent in a statically-typed implementation. 
-
-
 Sounds neat, will I be able to use it in my project?
 ----------------------------------------------------
 
@@ -99,15 +93,23 @@ module.
 Current Project Status
 ----------------------
 
-C++ AST implementation moved to legacy. Restarting the compiler grammar in Python Lark.
+100% of the example code parses, generating a complete AST.
+
+Currently working on: type analysis.
 
 
 Anticipated Questions
 ---------------------
 
-Q. What C++17 elements do you use?
+Q. What C++11 elements do you use?
 
-A1. All of it. I use whatever parts of the standard I want. If that's not good enough for your superstitious gamedev dialect, feel free to write a simplified library.
+A1. In `libparasol`, C++11 use is quite limited. This means that you should be able to load statically-compiled Parasol
+shaders even with partially-compliant C+11 compilers (like MSVS 2013). If you have *no* C++11 support on your platform,
+you can probably hack in sufficient support with a few typedefs and some macros.
+
+A2. In `libprsl` and `prslc`, we may use any and all **standard** C++11 features. Writing a compiler is already a pain
+in the ass, doubly so in C++. Since nobody in games likes Boost (with arguably good reason), C++11 is the only thing
+that helps to ease some of that pain.
 
 *
 
