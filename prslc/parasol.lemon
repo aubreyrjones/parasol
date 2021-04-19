@@ -1,0 +1,229 @@
+/*
+@pymod parasol_parser
+
+@lexdef
+
+!whitespace : \s+
+!comment : ;.*\n
+
+STRUCT         :=  struct      : [^\w_\?] 
+INCLUDE        :=  include     : [^\w_\?]
+IN             :=  in          : [^\w_\?]
+ELSE           :=  else        : [^\w_\?]
+DEF            :=  def         : [^\w_\?]
+AS             :=  as          : [^\w_\?]
+LET            :=  let         : [^\w_\?]
+
+L_CURLY        :=  {
+R_CURLY        :=  }
+GOESTO         :=  =>
+LAMBDA         :=  \
+COMMA          :=  ,
+EQUALS         :=  =
+L_AND          :=  &&
+L_OR           :=  ||
+B_AND          :=  &
+B_OR           :=  |
+LESS           :=  <
+LESS_EQ        :=  <=
+GREATER        :=  >
+GREATER_EQ     :=  >=
+EQ             :=  ==
+NOT_EQ         :=  !=
+PLUS           :=  +
+MINUS          :=  -
+MULT           :=  *
+DIV            :=  /
+DOT            :=  *.
+SWIZZLE        :=  .
+SEQUENCE       :=  ..
+NOT            :=  !
+R_BRACKET      :=  ]
+COLON          :=  :
+L_PAREN        :=  (
+R_PAREN        :=  )
+ARRAY          :=  @
+
+FLOAT_LIT      :   -?[0-9]+\.[0-9]*
+INT_LIT        :   -?[0-9]+
+
+FNCALL         :   ([_a-z][_a-z0-9\?]*)\s*\(
+SCOPEREF       :   ([_a-z][_a-z0-9\?]*)\s*\[
+ID             :   [_a-z][_a-z0-9\?]*
+
+@endlex
+*/
+
+module ::= global_list(c1).                                       { p->push_root(p->mn("root"))->pb(c1)->l(c1->line); }
+
+
+global_list(L) ::= .                                              { L = pnn("global_list"); }
+global_list(L) ::= global_list(RL) global_item(c1).               { RL->pb(c1); L = RL; }
+
+
+global_item(q) ::= pipeline(q1).                                  { q = q1; }
+global_item(q) ::= struct_def(q1).                                { q = q1;} 
+
+
+pipeline(q) ::= id(c1) L_CURLY pipeline_contents(c2) R_CURLY.     { q = p->mn("pipeline", {c1, c2}, c1->line); }
+
+
+pipeline_contents(L) ::= .                                        { L = pnn("pipeline_contents"); }
+pipeline_contents(L) ::= pipeline_contents(RL) pipeline_item(c1). { RL->pb(c1); L = RL; }
+
+
+pipeline_item(PI) ::= function_def(F).                            {PI = F;}
+pipeline_item(PI) ::= var_decl(E).                                {PI = E;}
+pipeline_item(PI) ::= scoped_var_decl(E).                         {PI = E;}
+pipeline_item(PI) ::= assignment_expr(E).                         {PI = E;}
+pipeline_item(PI) ::= include_decl(I).                            {PI = I;}
+
+
+function_def(F) ::= DEF(D) var_decl(VD) param_list(PL) GOESTO expr(E).           { F = p->mn("function_def", {VD, PL, E}, D.line); }
+function_def(F) ::= DEF(D) scoped_var_decl(VD) param_list(PL) GOESTO expr(E).    { F = p->mn("function_def", {VD, PL, E}, D.line); }
+
+
+lambda_def(L) ::= LAMBDA(LTOK) param_list(PL) GOESTO expr(E).     { L = p->mn("lambda", {PL, E}, LTOK.line); }
+
+
+param_list(PL) ::= .                                              { PL = pnn("param_list"); }
+param_list(PL) ::= var_decl(V).                                   { PL = pnn("param_list"); PL->pb(V);}
+param_list(P) ::= param_list(PL) COMMA var_decl(V).               { PL->pb(V); P = PL; }
+
+
+struct_def(S) ::= STRUCT(STOK) id(N) L_CURLY struct_contents(M) R_CURLY.         { S = p->mn("struct", {N, M}, STOK.line); }
+
+
+struct_contents(SC) ::= .                                         { SC = pnn("struct_contents"); }
+struct_contents(S) ::= struct_contents(SC) var_decl(V).           { SC->pb(V); S = SC;}
+
+
+include_decl(I) ::= INCLUDE(ITOK) id(P).                          { I = p->mn("include", {P}, ITOK.line); }
+include_decl(I) ::= INCLUDE(ITOK) id(P) AS id(A).                 { I = p->mn("include", {P, A}, ITOK.line);}
+
+
+// expressions... which is most of the language
+%right LAMBDA LET.
+%left GOESTO.
+%left COMMA FNCALL.
+%right EQUALS.
+%left L_AND L_OR.
+%left B_AND B_OR.
+%left LESS LESS_EQ GREATER GREATER_EQ.
+%left EQ NOT_EQ.
+%left PLUS MINUS.
+%left MULT DIV DOT.
+%left SWIZZLE SEQUENCE.
+%right NOT ELSE.
+
+// declarative expressions
+expr(E)  ::= scoped_var_decl(V).                                  { E = V;}
+
+
+scoped_var_decl(V) ::= scope(S) var_decl(DECL) R_BRACKET.         { V = p->mn("scoped_var_decl", {S, DECL}, DECL->line); }
+
+
+scope(I) ::= SCOPEREF(S).                                         { I = pnn(S); }
+
+
+var_decl(V) ::= id(NAME).                                         {V = p->mn("var_decl", {NAME}, NAME->line);}
+var_decl(V) ::= id(NAME) COLON type_id(TYPE) .                    {V = p->mn("var_decl", {NAME, TYPE}, NAME->line);}
+var_decl(V) ::= id(NAME) COLON integer(IDX).                      {V = p->mn("var_decl", {NAME, IDX}, NAME->line);}
+var_decl(V) ::= id(NAME) COLON type_id(TYPE) integer(IDX).        {V = p->mn("var_decl", {NAME, TYPE, IDX}, NAME->line);}
+
+
+
+// arithmetic expressions
+expr(E) ::= id(I).                                                {E = I;}
+expr(E) ::= float_(F).                                            {E = F;}
+expr(E) ::= integer(I).                                           {E = I;}
+expr(E) ::= function_call(F).                                     {E = F;}
+
+expr(E) ::= assignment_expr(I).                                   {E = I;}
+
+expr(E) ::= expr(L) PLUS expr(R).                                 {E = p->mn("+", {L, R}, L->line);}
+expr(E) ::= expr(L) MINUS expr(R).                                {E = p->mn("-", {L, R}, L->line);}
+expr(E) ::= expr(L) MULT expr(R).                                 {E = p->mn("*", {L, R}, L->line);}
+expr(E) ::= expr(L) DIV expr(R).                                  {E = p->mn("/", {L, R}, L->line);}
+expr(E) ::= expr(L) DOT expr(R).                                  {E = p->mn("*.", {L, R}, L->line);}
+expr(E) ::= expr(L) SEQUENCE expr(R).                             {E = p->mn("..", {L, R}, L->line);}
+expr(E) ::= NOT expr(I).                                          {E = p->mn("!", {I}, I->line);}
+expr(E) ::= MINUS expr(I). [NOT]                                  {E = p->mn("neg", {I}, I->line);}
+expr(E) ::= L_PAREN expr(I) R_PAREN.                              {E = I;}
+expr(E) ::= let_expr(I).                                          {E = I;}
+expr(E) ::= case_set(CS).                                         {E = CS;}
+expr(E) ::= lambda_def(L).                                        {E = L;}
+expr(E) ::= expr(L) SWIZZLE expr(R).                              {E = p->mn(".", {L, R}, L->line);}
+
+expr(E) ::= expr(L) L_AND expr(R).                                {E = p->mn("&&", {L, R}, L->line);}
+expr(E) ::= expr(L) L_OR expr(R).                                 {E = p->mn("||", {L, R}, L->line);}
+
+expr(E) ::= expr(L) B_AND expr(R).                                {E = p->mn("&", {L, R}, L->line);}
+expr(E) ::= expr(L) B_OR expr(R).                                 {E = p->mn("|", {L, R}, L->line);}
+
+expr(E) ::= expr(L) LESS expr(R).                                 {E = p->mn("<", {L, R}, L->line);}
+expr(E) ::= expr(L) LESS_EQ expr(R).                              {E = p->mn("<=", {L, R}, L->line);}
+
+expr(E) ::= expr(L) GREATER expr(R).                              {E = p->mn(">", {L, R}, L->line);}
+expr(E) ::= expr(L) GREATER_EQ expr(R).                           {E = p->mn(">=", {L, R}, L->line);}
+
+expr(E) ::= expr(L) EQ expr(R).                                   {E = p->mn("==", {L, R}, L->line);}
+expr(E) ::= expr(L) NOT_EQ expr(R).                               {E = p->mn("!=", {L, R}, L->line);}
+
+
+let_expr(L) ::= LET(LTOK) unscoped_assignment_list(AL) IN expr(E).    { L = p->mn("let", {AL, E}, LTOK.line); }
+
+
+unscoped_assignment_list(AL) ::= .                                {AL = pnn("unscoped_assignment_list"); }
+unscoped_assignment_list(A) ::= unscoped_assignment_list(AL) unscoped_assignment_expr(E).    {AL->pb(E); A = AL;}
+
+
+case_set(CS) ::= L_CURLY(LCTOK) case_list(CL) R_CURLY.            {CS = p->mn("case_set", {CL}, LCTOK.line); }
+
+
+case_list(CL) ::= .                                               {CL = pnn("case_list");}
+case_list(C) ::= case_list(CL) case(CS).                          {CL->pb(CS); C = CL;}
+
+
+case(C) ::= expr(COND) GOESTO expr(R).                            {C = p->mn("case", {COND, R}, COND->line); }
+
+
+assignment_expr(E) ::= unscoped_assignment_expr(I).               {E = I;}
+assignment_expr(E) ::= scoped_var_decl(L) EQUALS expr(R).         {E = p->mn("=", {L, R}, L->line);}
+
+
+unscoped_assignment_expr(E) ::= var_decl(L) EQUALS expr(R).       {E = p->mn("=", {L, R}, L->line);}
+
+
+function_call(F) ::= fncall(NAME) arg_list(ARGS) R_PAREN.         {F = p->mn("function_call", {NAME, ARGS}, NAME->line); }
+
+
+fncall(I) ::= FNCALL(F).                                          {I = pnn(F);}
+
+
+arg_list(PL) ::= .                                                {PL = pnn("arg_list"); }
+arg_list(PL) ::= expr(E).                                         {PL = p->mn("arg_list", {E}, E->line); }
+arg_list(A) ::= arg_list(PL) COMMA expr(E).                       {PL->pb(E); A = PL;}
+
+
+id(I) ::= ID(IDL).                                                { I = pnn(IDL); }
+
+
+type_id(I) ::= ID(IDL).                                           {I = p->mn("type_id", {pnn(IDL)}, IDL.line);}
+type_id(I) ::= ID(IDL) ARRAY integer(A).                          {I = p->mn("type_id", {pnn(IDL), A}, IDL.line); }
+
+
+integer(I) ::= INT_LIT(IL).                                       {I = pnn(IL); }
+
+
+float_(F) ::= FLOAT_LIT(FL).                                      {F = pnn(FL); }
+
+
+
+
+
+
+
+
+
+
