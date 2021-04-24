@@ -1,0 +1,144 @@
+/*
+@pymod parasol_parser
+@lexdef
+
+!whitespace : \s+
+!comment    : ;.*\n
+
+LET           := let            : [^\w_]
+
+
+LCURLY        := {
+RCURLY        := }
+RBRACKET      := ]
+L_PAREN       := (
+R_PAREN       := )
+LAMBDA        := \
+
+GOESTO        := ->
+GETS          := <-
+COMMA         := ,
+
+L_AND         := &&
+L_OR          := ||
+B_AND         := &
+B_OR          := |
+LESS          := <
+LESS_EQ       := <=
+GREATER       := >
+GREATER_EQ    := >=
+EQ            := ==
+NOT_EQ        := !=
+PLUS          := +
+MINUS         := -
+MULT          := *
+DIV           := /
+DOT           := *.
+SWIZZLE       := .
+SEQUENCE      := ..
+NOT           := !
+
+INTEGER       :  [0-9]+
+FNCALL        :  [_a-z][_a-z0-9\?]*\s*\(
+VARDECL       :  [_a-z][_a-z0-9\?]*\s*:
+STAGEREF      :  [_a-z][_a-z0-9\?]*\s*\[
+IDENT         :  [_a-z][_a-z0-9\?]*
+
+@endlex
+*/
+
+toplevel ::= global_list(gl).                                           { _ = gl; }
+
+global_list(L) ::= .                                                    { L = _("global_list"); }
+global_list(L) ::= global_list(L1) global_item(i).                      { L = L1 += i; }
+
+global_item(I) ::= pipeline(p).                                         { I = p; }
+
+pipeline(P) ::= ident(id) LCURLY pipeline_contents(c) RCURLY.           { P = _("pipeline", {id, c}, ~id); }
+
+pipeline_contents(L) ::= .                                              { L = _("pipeline_contents"); }
+pipeline_contents(L) ::= pipeline_contents(L1) pipeline_item(i).        { L = L1 += i; }
+
+pipeline_item(C) ::= assignment(a).                                     { C = a; }
+
+assignment(A) ::= varref(v) GETS expr(e).                               { A = _("assignment", {v, e}, ~v); }
+assignment(A) ::= vardecl(v) GETS expr(e).                              { A = _("assignment", {v, e}, ~v); }
+
+vardecl(A) ::= naked_vardecl(v).                                        { A = v; }
+vardecl(A) ::= staged_vardecl(v).                                       { A = v; }
+
+naked_vardecl(V) ::= VARDECL(v).                                        { V = _("vardecl", { _(v), _("type"), _("index") }, ~v); }
+naked_vardecl(V) ::= VARDECL(v) typeref(t).                             { V = _("vardecl", { _(v), _("type") += t, _("index") }, ~v); }
+naked_vardecl(V) ::= VARDECL(v) integer(i).                             { V = _("vardecl", { _(v), _("type"), _("index") += i }, ~v); }
+naked_vardecl(V) ::= VARDECL(v) typeref(t) integer(i).                  { V = _("vardecl", { _(v), _("type") += t, _("index") += i }, ~v); }
+
+staged_vardecl(SV) ::= STAGEREF(s) naked_vardecl(v) RBRACKET.           { SV = _("staged_vardecl", { _(s), v }, ~s); }
+
+// ============== Expressions =============
+
+%right LAMBDA LET.
+%left GOESTO.
+%left COMMA FNCALL.
+%right GETS.
+%left L_AND L_OR.
+%left B_AND B_OR.
+%left LESS LESS_EQ GREATER GREATER_EQ.
+%left EQ NOT_EQ.
+%left PLUS MINUS.
+%left MULT DIV DOT.
+%left SWIZZLE SEQUENCE.
+%right NOT.
+
+expr(E) ::= varref(e).                                                  { E = e; }
+expr(E) ::= assignment(e).                                              { E = e; }
+expr(E) ::= staged_vardecl(e).                                          { E = e; }
+
+expr(E) ::= fncall(e).                                                  { E = e; }
+
+fncall(F) ::= FNCALL(f) arg_list(al) R_PAREN.                           { F = _("fncall", { _(f), al }, ~f); }
+
+arg_list(AL) ::= .                                                      { AL = _("arglist"); }
+arg_list(AL) ::= expr(e).                                               { AL = _("arglist", { e }, ~e); }
+arg_list(AL) ::= arg_list(AL1) COMMA expr(e).                           { AL = AL1 += e; }
+
+expr(E) ::= expr(L) PLUS expr(R).                                       { E = _("+", { L, R }, ~L); }
+expr(E) ::= expr(L) MINUS expr(R).                                      { E = _("-", { L, R }, ~L); }
+expr(E) ::= expr(L) MULT expr(R).                                       { E = _("*", { L, R }, ~L); }
+expr(E) ::= expr(L) DIV expr(R).                                        { E = _("/", { L, R }, ~L); }
+expr(E) ::= expr(L) DOT expr(R).                                        { E = _("*.", { L, R }, ~L); }
+// expr(E) ::= expr(L) SEQUENCE expr(R).                                   {E = _("..", {L, R}, ~L);}
+// expr(E) ::= NOT expr(I).                                                {E = _("!", {I}, ~I);}
+// expr(E) ::= MINUS expr(I). [NOT]                                        {E = _("neg", {I}, ~I);}
+expr(E) ::= L_PAREN expr(I) R_PAREN.                                    {E = I;}
+//expr(E) ::= let_expr(I).                                          {E = I;}
+//expr(E) ::= case_set(CS).                                         {E = CS;}
+//expr(E) ::= lambda_def(L).                                        {E = L;}
+// expr(E) ::= expr(L) SWIZZLE expr(R).                                    {E = _(".", {L, R}, ~L);}
+
+// expr(E) ::= expr(L) L_AND expr(R).                                      {E = _("&&", {L, R}, ~L);}
+// expr(E) ::= expr(L) L_OR expr(R).                                       {E = _("||", {L, R}, ~L);}
+
+// expr(E) ::= expr(L) B_AND expr(R).                                      {E = _("&", {L, R}, ~L);}
+// expr(E) ::= expr(L) B_OR expr(R).                                       {E = _("|", {L, R}, ~L);}
+
+// expr(E) ::= expr(L) LESS expr(R).                                       {E = _("<", {L, R}, ~L);}
+// expr(E) ::= expr(L) LESS_EQ expr(R).                                    {E = _("<=", {L, R}, ~L);}
+
+// expr(E) ::= expr(L) GREATER expr(R).                                    {E = _(">", {L, R}, ~L);}
+// expr(E) ::= expr(L) GREATER_EQ expr(R).                                 {E = _(">=", {L, R}, ~L);}
+
+// expr(E) ::= expr(L) EQ expr(R).                                         {E = _("==", {L, R}, ~L);}
+// expr(E) ::= expr(L) NOT_EQ expr(R).                                     {E = _("!=", {L, R}, ~L);}
+
+expr(E) ::= number(n).                                                     { E = n; }
+
+number(N) ::= integer(lit).                                                { N = lit; }
+
+// ============== Terminals ===============
+
+typeref(T) ::= ident(i).                                                { T = i; }
+varref(V) ::= ident(i).                                                 { V = i; }
+ident(I) ::= IDENT(i).                                                  { I = _(i); }
+
+
+integer(I) ::= INTEGER(i).                                              { I = _(i); }
