@@ -1,146 +1,84 @@
 Parasol
-=======
+-------
 
-Parasol is designed to make writing graphical shaders much, much less laborious than it is now. Languages such as GLSL
-and HLSL require a lot of boilerplate code redefining interface variables in each shader stage. And they make it
-difficult or impossible to create modular components. You end up rewriting the same vertex position multiply over and
-over again, in each (very-slightly) different vertex shader.
+This readme represents a fresh start. 
 
-Parasol is a functional language, designed to permit extreme shader code reuse. Instead of specifying calculations with
-stepwise instructions, in Parasol you simply specify the values of outputs as expressions of the inputs. Sets of input
-variables, output variables, and functions are grouped into namespaces called 'pipelines'.
+I originally started work on Parasol 6 years ago, got it parsing, and
+then couldn't figure out where to start on codegen. I've grown a lot
+as a designer and engineer since then, and so has the GPU technology
+stack.  When I took this project up again recently, I used the
+original Lemon grammar file as test input for my
+[lemon-py](https://github.com/aubreyrjones/lemon-py) project.  But now
+equipped with years' more experience and vastly more flexible tooling,
+it's clear that there are several defects in both the design of the
+grammar and the language itself.
 
-For example:
+Truthfully, I've _forgotten_ a great deal of what I was planning with
+the particular syntax of the old language. Some parts are crystal
+clear: pure functional with a rich expression language, no explicit
+loops, entirely case-based branching, and inline callout of GPU stage
+(vertex, fragment, etc.). What I don't think I'd really considered was
+how _not_ to use the syntax.  I was just so enamoured with seeing my
+ASTs on the screen, I wanted to keep making them more
+complicated. That doesn't make for good design.
 
-    vertex_position {
-        v[v_position] = u[viewMatrix: mat4] *
-                        u[modelMatrix: mat4] *
-                        vec4(a[v_inPosition: vec3], 1)
-        
-        v[gl_Position] = u[projMatrix: mat4] * v_position 
-    }
+To get an idea of the goals and design of the language, check the
+documentation, grammar, and examples in the `legacy/` directory of
+this project. You go ahead and look. I'm trying not to. :)
+
+I'm starting over fresh, with only some design goals in mind:
+
+  * Parasol is a language for writing graphical shaders, with
+    first-class support for GPU primitives. It intentionally _lacks_
+    constructs that cannot be realized on GPU (such as string data
+    types or IO routines).
+
+  * Parasol is for more than games. While I have worked in games, I
+    work in medical imaging now. I would like more people to take
+    advantage of the GPU, and I think a more integrated, expressive
+    environment will help. GLSL is intimidating, and piecing together
+    a complete pipeline from fragmented shader text is error-prone and
+    confusing.
+
+  * Parasol is _not_ a language for GPGPU programming.  Specifically,
+    Parasol is not designed to make the GPU environment more like the
+    CPU environment. OpenCL, CUDA, and the proliferating GPU math
+    libraries provide excellent GPGPU services already, and Parasol
+    doesn't intend to reinvent the wheel.
+
+  * Parasol must be pragmatically "better" than GLSL and HLSL in
+    tangible ways. It must be more readable, more understandable, and
+    less "magical" than traditional GPU programming. It should express
+    simple or ubiquitous operations with simple syntax.  It should
+    avoid all boilerplate.
+
+  * Parasol must **both** ease the process of creating shader
+    pipelines for new-folder projects, and scale to integration in AAA
+    game engines and HPC scientific imaging.
+
+  * The Parasol runtime library must be implemented in self-contained
+    C++.
     
-That small snippet of code declares a vertex output called `v_position`, three uniform matrices, and a vertex attribute.
-It also writes to gl_Position (fulfilling the GLSL vertex shader contract).
+  * I reserve the right to implement the compiler in whatever language
+    I find convenient.
 
-You can include `vertex_position` into other Parasol pipelines, making the outputs and functions defined within that
-pipeline available in the enclosing one. This isn't a textual include, but it's also not really an "import" either. The
-namespaces are totally flattened, and all redundant interface definitions are merged. Conflicting interface specs
-generate errors, but you can refine previously-declared specs with additional information).
+  * Parasol should be a pure-functional language, as this fits
+    perfectly with the GPU paradigm and there are few points of
+    interface to procedural systems. A functional language allows the
+    compiler to know "everything" about the state of the program at
+    any point, allowing Parasol to free the programmer of (hopefully)
+    all the boilerplate of GPU programming.
+  
+  * Parasol must be aware of the staged nature of GPUs which
+    effectively introduces both an implicit scope to all calculations,
+    and requires interface variables between stages. Parasol should
+    not, however, depend on the _behavior_ of any particular
+    stage. The stage definitions must be configurable for different
+    rendering APIs.
 
-    object_color_complete {
-        include vertex_position
-    
-    
-        v[v_color] = a[v_inColor: vec4]
-        f[outColor: vec4 0] = v_color    ; that's the output index after the type
-        
-        a[v_inPosition: 0]    ; refine vertex attribute with index spec
-        a[v_inColor: 1]
-        
-    }
+  * Parasol should deduce types wherever possible.
 
-
-Here's a [longer sample](parasol_examples/simplicity.prsl).
-For a more complex example, check out the [Phong-shading example](parasol_examples/phong.prsl).
-
-There's also a [language readme](LANGUAGE_README.md) that provides information on Parasol syntax and semantics. It
-should be considered entirely and completely unstable right now.
-
-
-Sounds neat, will I be able to use it in my project?
-----------------------------------------------------
-
-    Don't try yet, Parasol is still in the very early stages. This section is largely speculative. :)
-    
-**Short Answer**: The goal is to enable shaders written in Parasol and statically compiled to be loaded and used in any
-environment with a C++11 compiler, and either OpenGL 3.3+, OpenGL ES 3.0, or Vulkan (when available).
-
-**Long Answer**: We've tried to make parasol fairly self-contained and easy to integrate. C++ standard libraries aside,
-everything necessary to build Parasol is contained in this repository. The default build artifacts are
-position-independent static libraries, and the [license](LICENSE) permits both FOSS and commerical use with any linking
-model.
-
-There are three elements to the Parasol project: `libparasol`, which provides platform-specific runtime routines to
-load, link, and inspect compiled Parasol code; `libprsl`, which encapsulates the Parasol compiler logic for use
-by a client application; and `prslc`, which is a driver program for `libprsl`, implementing a command-line Parasol
-compiler.
-
-In most simple use cases, the client application need only link with `libparasol` (or include the source files into your
-existing build). This will allow most applications to easily load fully-compiled Parasol shaders without needing any of
-the code necessary to parse or compile Parasol code. The goal is to keep `libparasol` as lightweight as possible,
-as its main purpose is simply to load GLSL or SPIR-V code from sqlite files.
-
-Linking with `libprsl` is only necessary when shaders are going to be generated from Parasol source or serialized ASTs
-at runtime. This may be the case if integrating Parasol as a dynamic tool in a game engine, or if you are using Parasol
-for runtime shader metaprogramming. But in many cases, simply using `libparasol` to load the compiled shaders should be
-sufficient.
-
-Additional libraries are included as source code in the Parasol project and built into the Parasol library. These
-libraries are:
-
-    * TinyFormat - general text formatting in all components
-    * TCLAP - used by `prslc` to parse commandline arguments
-    * sqlite - used everywhere [ANTICIPATED, not yet included]
-
-Additionally, the building the compiler components depends on the `lemon` parser generator (included in `./lemon`)
-to generate the parser. This step is included automatically in the CMake build, but can be executed offline if you
-aren't hacking on Parasol itself (but do build `libprsl` from source). In any case, neither the source code for `lemon`
-nor the executable itself is necessary for using any Parasol module; it's necessary only when building the `libprsl`
-module.
-
-
-Current Project Status
-----------------------
-
-100% of the example code parses, generating a complete AST.
-
-Currently working on: type analysis.
-
-
-Anticipated Questions
----------------------
-
-Q. What C++11 elements do you use?
-
-A1. In `libparasol`, C++11 use is quite limited. This means that you should be able to load statically-compiled Parasol
-shaders even with partially-compliant C+11 compilers (like MSVS 2013). If you have *no* C++11 support on your platform,
-you can probably hack in sufficient support with a few typedefs and some macros.
-
-A2. In `libprsl` and `prslc`, we may use any and all **standard** C++11 features. Writing a compiler is already a pain
-in the ass, doubly so in C++. Since nobody in games likes Boost (with arguably good reason), C++11 is the only thing
-that helps to ease some of that pain.
-
-*
-
-Q. What's the output look like?
-
-A. While implementation hasn't reached the codegen phase, there are two broad categories of output: serialized ASTs and
-compiled (realized) shaders. Both are stored in sqlite files.
-
-Serialized ASTs are designed for dynamic shader generation. They allow source code to be pre-parsed, and for much of the
-linking and analysis to be handled offline during asset bake. Client applications can then use pre-processed Parasol
-files as a library when generating new shaders at runtime.
- 
-Shaders are finally compiled down into blocks of GLSL and SPIR-V code. The structure of both is very similar, with the
-GLSL code generated in an SSA style like the SPIR-V code requires. While high-quality GLSL output is a priority, we
-expect that Vulkan will be the more efficient implementation.
-
-
-*
-
-Q. Just GLSL and SPIR-V? What about $shader_language output?
-
-A. I don't use $shader_language. Did I just hear you volunteer? 
-
-*
-
-Q. What about shader code for console $foo?
-
-A. I don't have a license or an NDA with that company. If you work for or with them, feel free to contact me. We may be
-able to work something out.
-
-
-
+  * Parasol must output SPIR-V code, and probably should output GLSL
+    and also whatever DirectX uses.
 
 

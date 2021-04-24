@@ -29,15 +29,14 @@ phong_lighting {
       normalize(lightPos - fragPos)
 
 
-  def f[pointLightContrib] light =>    ; since pointLightContrib has f-stage scope...
-    light.color * max(0, v_normal *. L(light.position, v_pos))    ; ... it closes over the fragment inputs.
+  def pointLightContrib light =>
+    light.color * max(0, v_normal *. L(light.position, v_pos))
 
-  def f[pointLight]
-    light =>
-      {
-        any(light.color) => clamp(pointLightContrib(light), 0, 1)    ; if light.color is truthy, there's your answer
-        _ => vec4(0)    ; _ is the default case
-      }
+  def pointLight light =>
+    {
+      any(light.color) => clamp(pointLightContrib(light), 0, 1)    ; if light.color is truthy, there's your answer
+      _ => vec4(0)    ; _ is the default case
+    }
   
   f[out_color: 0] =    ; inline output index spec
     __(point_lights,    ; __(array, f, g) is short (and optimized) for reduce(map(array, f), g).
