@@ -1,4 +1,4 @@
-_1997 {
+pipeline _1997 {
     gl_Position <-                       ; `gl_Position` is provided by the platform definition `v[gl_Position:vec3]`.
         u[projMatrix: mat4] *            ; defines a uniform variable
         u[viewMatrix: mat4] *            ; and another one

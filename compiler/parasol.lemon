@@ -6,13 +6,13 @@
 !comment    : ;.*\n
 
 LET           := let            : [^\w_]
-
+PIPELINE      := pipeline       : [^\w_]
 
 LCURLY        := {
 RCURLY        := }
 RBRACKET      := ]
-L_PAREN       := (
-R_PAREN       := )
+LPAREN        := (
+RPAREN        := )
 LAMBDA        := \
 
 GOESTO        := ->
@@ -52,17 +52,20 @@ toplevel ::= global_list(gl).                                           { _ = gl
 global_list(L) ::= .                                                    { L = _("global_list"); }
 global_list(L) ::= global_list(L1) global_item(i).                      { L = L1 += i; }
 
+global_item(I) ::= component(c).                                        { I = c; }
 global_item(I) ::= pipeline(p).                                         { I = p; }
 
-pipeline(P) ::= ident(id) LCURLY pipeline_contents(c) RCURLY.           { P = _("pipeline", {id, c}, ~id); }
+component(P) ::= ident(id) LCURLY component_contents(c) RCURLY.         { P = _("component", { id, c }, ~id); }
 
-pipeline_contents(L) ::= .                                              { L = _("pipeline_contents"); }
-pipeline_contents(L) ::= pipeline_contents(L1) pipeline_item(i).        { L = L1 += i; }
+component_contents(L) ::= .                                             { L = _("component_contents"); }
+component_contents(L) ::= component_contents(L1) component_item(i).     { L = L1 += i; }
 
-pipeline_item(C) ::= assignment(a).                                     { C = a; }
+pipeline(P) ::= PIPELINE(p) component(c).                               { P = _("pipeline", { c[0], c[1] }, ~p); }
 
-assignment(A) ::= varref(v) GETS expr(e).                               { A = _("assignment", {v, e}, ~v); }
-assignment(A) ::= vardecl(v) GETS expr(e).                              { A = _("assignment", {v, e}, ~v); }
+component_item(C) ::= assignment(a).                                    { C = a; }
+
+assignment(A) ::= varref(v) GETS expr(e).                               { A = _("Gets", { v, e }, ~v); }
+assignment(A) ::= vardecl(v) GETS expr(e).                              { A = _("Gets", { v, e }, ~v); }
 
 vardecl(A) ::= naked_vardecl(v).                                        { A = v; }
 vardecl(A) ::= staged_vardecl(v).                                       { A = v; }
@@ -95,21 +98,21 @@ expr(E) ::= staged_vardecl(e).                                          { E = e;
 
 expr(E) ::= fncall(e).                                                  { E = e; }
 
-fncall(F) ::= FNCALL(f) arg_list(al) R_PAREN.                           { F = _("fncall", { _(f), al }, ~f); }
+fncall(F) ::= FNCALL(f) arg_list(al) RPAREN.                           { F = _("fncall", { _(f), al }, ~f); }
 
 arg_list(AL) ::= .                                                      { AL = _("arglist"); }
 arg_list(AL) ::= expr(e).                                               { AL = _("arglist", { e }, ~e); }
 arg_list(AL) ::= arg_list(AL1) COMMA expr(e).                           { AL = AL1 += e; }
 
-expr(E) ::= expr(L) PLUS expr(R).                                       { E = _("+", { L, R }, ~L); }
-expr(E) ::= expr(L) MINUS expr(R).                                      { E = _("-", { L, R }, ~L); }
-expr(E) ::= expr(L) MULT expr(R).                                       { E = _("*", { L, R }, ~L); }
-expr(E) ::= expr(L) DIV expr(R).                                        { E = _("/", { L, R }, ~L); }
-expr(E) ::= expr(L) DOT expr(R).                                        { E = _("*.", { L, R }, ~L); }
+expr(E) ::= expr(L) PLUS expr(R).                                       { E = _("Add", { L, R }, ~L); }
+expr(E) ::= expr(L) MINUS expr(R).                                      { E = _("Sub", { L, R }, ~L); }
+expr(E) ::= expr(L) MULT expr(R).                                       { E = _("Mult", { L, R }, ~L); }
+expr(E) ::= expr(L) DIV expr(R).                                        { E = _("Div", { L, R }, ~L); }
+expr(E) ::= expr(L) DOT expr(R).                                        { E = _("Dot", { L, R }, ~L); }
 // expr(E) ::= expr(L) SEQUENCE expr(R).                                   {E = _("..", {L, R}, ~L);}
 // expr(E) ::= NOT expr(I).                                                {E = _("!", {I}, ~I);}
 // expr(E) ::= MINUS expr(I). [NOT]                                        {E = _("neg", {I}, ~I);}
-expr(E) ::= L_PAREN expr(I) R_PAREN.                                    {E = I;}
+expr(E) ::= LPAREN expr(I) RPAREN.                                    {E = I;}
 //expr(E) ::= let_expr(I).                                          {E = I;}
 //expr(E) ::= case_set(CS).                                         {E = CS;}
 //expr(E) ::= lambda_def(L).                                        {E = L;}
@@ -136,8 +139,8 @@ number(N) ::= integer(lit).                                                { N =
 
 // ============== Terminals ===============
 
-typeref(T) ::= ident(i).                                                { T = i; }
-varref(V) ::= ident(i).                                                 { V = i; }
+typeref(T) ::= ident(i).                                                { T = _("typeref", { i }, ~i); }
+varref(V) ::= ident(i).                                                 { V = _("varref", { i }, ~i); }
 ident(I) ::= IDENT(i).                                                  { I = _(i); }
 
 
