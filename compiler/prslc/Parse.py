@@ -27,8 +27,10 @@ def convert_component_item(n):
     r = None
     if n.name == 'Gets':
         return Gets(convert_expr(n[0]), convert_expr(n[1]), n.line)
+    if n.name == 'fndef':
+        return FnDef(cast_ident(n[0]), list(map(convert_vardecl, n[1])), convert_expr(n[2]), n.line)
     else:
-        raise RuntimeError("Parse conversion error. Expected Gets, got: " + n.name)
+        raise RuntimeError("Parse conversion error. Expected Gets or fndef, got: " + n.name)
     
 def convert_expr(n):
     if n is None: return None
@@ -57,8 +59,10 @@ def convert_expr(n):
 def convert_terminal_value(n):
     if n.type == 'INTEGER':
         return Integer(cast_integer(n), n.line)
+    if n.type == 'FLOAT':
+        return Float(cast_float(n), n.line)
 
-def convert_vardecl(n, stage: str):
+def convert_vardecl(n, stage: str = None):
     return VarDecl(cast_ident(n[0]), stage, convert_typeref(n[1][0]), cast_integer(n[2][0]), n.line)
 
 def convert_typeref(n):
@@ -80,6 +84,10 @@ def cast_integer(n) -> int:
     
     return int(n.value)
 
+def cast_float(n) -> float:
+    if n is None: return None
+    if n.type != 'FLOAT': raise RuntimeError('Parse conversion error. Expected FLOAT type, got' + repr(n.type))
+    return float(n.value)
 
 def parse_and_convert(source: str) -> TU:
     return convert_global_list(parser.parse(source))
@@ -92,7 +100,8 @@ if __name__ == '__main__' :
     ast = parse_and_convert(open(sys.argv[1]).read())
 
     Translate.push_scopes(ast)
+    Translate.push_decls(ast)
+
     Translate.synthesize_types(ast)
-    
 
     visualize_ast(ast)

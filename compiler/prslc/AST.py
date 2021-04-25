@@ -22,6 +22,11 @@ def _add_type_node(g: Digraph, this):
     g.node(nodeid, f'{typecode[0]}{"@" + str(typecode[1]) if typecode[1] else ""}', shape='ellipse', color='#e6eeff', fontsize='8')
     g.edge(nodeid, str(this.id))
 
+def typestr(typecode: tuple) -> str:
+    if typecode is None: return '?'
+    if typecode[1]:
+        return f'{typecode[0]}@{typecode[1]}'
+    return typecode[0]
 
 class ASTNode:
     def __init__(self, line: int = -1):
@@ -103,7 +108,6 @@ class Component(ASTNode):
             c.dot(g)
             g.edge(str(self.id), str(c.id))
 
-
     def re_id(self):
         super().re_id()
         for c in self.items:
@@ -150,12 +154,12 @@ class TypeRef(ASTNode):
         super().re_id()
 
 
-class FnDef:
-    def __init__(self, name: str, line):
-        super().__init__(self, line)
+class FnDef(ASTNode):
+    def __init__(self, name: str, params, body, line):
+        super().__init__(line)
         self.name = name
-        self.params = []
-        self.body = None
+        self.params = params
+        self.body = body
 
     def re_id(self):
         super().re_id()
@@ -163,11 +167,19 @@ class FnDef:
             p.re_id()
         if self.body: self.body.re_id()
     
+    def param_rep(self):
+        return " | ".join(map(lambda p: typestr(p.typecode()), self.params))
+
+    def dot(self, g):
+        g.node(str(self.id), nohtml(f'{{{self.line}) {self.name}| {{{self.param_rep()}}} | <f0>}}'))
+        self.body.dot(g)
+        g.edge(str(self.id) + ":<f0>", str(self.body.id))
+
     def realize(self, arg_type_list: List[tuple]):
         pass
 
     def subs(self):
-        chain(self.params, [self.body])
+        return chain(self.params, [self.body])
 
 class Expression(ASTNode):
     def __init__(self, line):
@@ -351,6 +363,11 @@ class VarDecl(Expression):
             self.typeref.dot(g)
             g.edge(f'{str(self.id)}:<f0>', str(self.typeref.id))
         _add_type_node(g, self)
+
+    def typecode(self):
+        if 'T' in self: return self['T']
+        if not self.typeref: return None
+        return self.typeref.typecode()
 
 
 class VarRef(Expression):

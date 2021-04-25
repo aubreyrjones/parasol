@@ -17,24 +17,18 @@ def push_scopes(root, parent_scope = None):
     _map(lambda g: push_scopes(g, root.scope), root.subs())
 
 
+def push_decls(root):
+    if isinstance(root, VarDecl):
+        root.scope.declare_var(root)
+    _map(push_decls, root.subs())
+
+
 def close_refs(root):
-    if isinstance(root,  TU): # has no type
-        _map(close_refs, root.globals)
-    elif type(root) in (Component, Pipeline): # has no type
-        _map(close_refs, root.items)
-    elif isinstance(root,  TypeRef): # a type root
+    if isinstance(root,  TypeRef):
         pass
     elif isinstance(root,  FnCall):
         pass
-    elif isinstance(root,  UnaryOp):
-        close_refs(root.operand)
-    elif isinstance(root,  BinaryOp):
-        close_refs(root.lef)
-        close_refs(root.right)
-    elif isinstance(root,  VarDecl):
-        pass
-    elif isinstance(root,  VarRef):
-        pass
+    _map(close_refs, root.subs())
 
 
 def link_vardecl_types(root):

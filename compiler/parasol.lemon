@@ -5,8 +5,9 @@
 !whitespace : \s+
 !comment    : ;.*\n
 
-LET           := let            : [^\w_]
-PIPELINE      := pipeline       : [^\w_]
+LET           := let            : [^\w_\?]
+PIPELINE      := pipeline       : [^\w_\?]
+DEF           := def            : [^\w_\?]
 
 LCURLY        := {
 RCURLY        := }
@@ -38,6 +39,7 @@ SWIZZLE       := .
 SEQUENCE      := ..
 NOT           := !
 
+FLOAT         :  [0-9]+\.[0-9]*
 INTEGER       :  [0-9]+
 FNCALL        :  [_a-z][_a-z0-9\?]*\s*\(
 VARDECL       :  [_a-z][_a-z0-9\?]*\s*:
@@ -63,9 +65,16 @@ component_contents(L) ::= component_contents(L1) component_item(i).     { L = L1
 pipeline(P) ::= PIPELINE(p) component(c).                               { P = _("pipeline", { c[0], c[1] }, ~p); }
 
 component_item(C) ::= assignment(a).                                    { C = a; }
+component_item(C) ::= fndef(a).                                         { C = a; }
 
 assignment(A) ::= varref(v) GETS expr(e).                               { A = _("Gets", { v, e }, ~v); }
 assignment(A) ::= vardecl(v) GETS expr(e).                              { A = _("Gets", { v, e }, ~v); }
+
+fndef(F) ::= DEF ident(i) fn_param_list(p) GOESTO expr(body).           { F = _("fndef", {i, p, body}, ~i); }
+
+fn_param_list(PL) ::= .                                                 { PL = _("param_list"); }
+//fn_param_list(PL) ::= naked_vardecl(e).                                 { PL = _("param_list", { e }, ~e); }
+fn_param_list(PL) ::= fn_param_list(PL1) naked_vardecl(e).        { PL = PL1 += e; }
 
 vardecl(A) ::= naked_vardecl(v).                                        { A = v; }
 vardecl(A) ::= staged_vardecl(v).                                       { A = v; }
@@ -98,7 +107,7 @@ expr(E) ::= staged_vardecl(e).                                          { E = e;
 
 expr(E) ::= fncall(e).                                                  { E = e; }
 
-fncall(F) ::= FNCALL(f) arg_list(al) RPAREN.                           { F = _("fncall", { _(f), al }, ~f); }
+fncall(F) ::= FNCALL(f) arg_list(al) RPAREN.                            { F = _("fncall", { _(f), al }, ~f); }
 
 arg_list(AL) ::= .                                                      { AL = _("arglist"); }
 arg_list(AL) ::= expr(e).                                               { AL = _("arglist", { e }, ~e); }
@@ -136,6 +145,7 @@ expr(E) ::= LPAREN expr(I) RPAREN.                                    {E = I;}
 expr(E) ::= number(n).                                                     { E = n; }
 
 number(N) ::= integer(lit).                                                { N = lit; }
+number(N) ::= float(lit).                                                  { N = lit; }
 
 // ============== Terminals ===============
 
@@ -145,3 +155,4 @@ ident(I) ::= IDENT(i).                                                  { I = _(
 
 
 integer(I) ::= INTEGER(i).                                              { I = _(i); }
+float(F) ::= FLOAT(f).                                                  { F = _(f); }
