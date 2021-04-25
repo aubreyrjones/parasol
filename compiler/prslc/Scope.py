@@ -1,35 +1,5 @@
-class Variable:
-    def __init__(self, name, decl = None):
-        self.name = name
-        self.constant_value = None
-        self.stage = None
-        self.type = None
-        self.index = None
-        if decl: 
-            self.refine(decl)
+from Types import Variable, Function
 
-    def _ref_attr(self, decl, a):
-        oval = getattr(decl, a)
-        mval = getattr(self, a)
-        if oval:
-            if mval and mval != oval:
-                raise RuntimeError(f"Error refining variable definition. Mismatched {a} declaration for {self.name}. Declared earlier with {str(mval)}, then with {str(oval)} at line {decl.line}.")
-            setattr(self, a, oval)
-
-    def refine(self, decl):
-        self._ref_attr(decl, 'stage')
-        self._ref_attr(decl, 'index')
-        decltype = decl.typecode()
-        if decltype:
-            if self.type and decltype != self.type:
-                raise RuntimeError(f"Error refining variable definition. Mismatched type declaration for {self.name}. Declared earlier with {str(self.type)}, then with {str(decltype)} at line {decl.line}.")
-            self.type = decltype
-
-    def push_inferred_type(self, typecode):
-        if self.type and self.type != typecode:
-            raise RuntimeError(f"Inferred type {str(typecode)} is incompatible with explicitly declared type {str(self.type)} for variable {self.name}.")
-        self.type = typecode
-        
 
 class LexicalScope:
     def __init__(self, name, owner, parent: 'LexicalScope' = None):
@@ -57,4 +27,9 @@ class LexicalScope:
             self[decl.name] = Variable(decl.name, decl)
         else:
             var.refine(decl)
-        
+
+    def define_fn(self, fndef):
+        func = self[fndef.name]
+        if func:
+            raise RuntimeError(f"Scope error attempting to define function with name {fndef.name}, but that name is already defined.")
+        self[fndef.name] = Function(fndef)

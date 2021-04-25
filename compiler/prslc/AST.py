@@ -3,9 +3,8 @@ from graphviz import Digraph, nohtml
 import tempfile
 import os.path as path
 import subprocess
-import copy
 from itertools import chain
-
+from Types import Variable, Function
 
 _id_counter = -1
 
@@ -51,9 +50,6 @@ class ASTNode:
 
     def __contains__(self, k):
         return k in self.attr
-
-    def copy(self):
-        r = TU(self.line)
         
     def re_id(self):
         self.id = _next_id()
@@ -167,6 +163,9 @@ class FnDef(ASTNode):
             p.re_id()
         if self.body: self.body.re_id()
     
+    def param_names(self):
+        return [p.name for p in self.params]
+
     def param_rep(self):
         return " | ".join(map(lambda p: typestr(p.typecode()), self.params))
 
@@ -174,9 +173,6 @@ class FnDef(ASTNode):
         g.node(str(self.id), nohtml(f'{{{self.line}) {self.name}| {{{self.param_rep()}}} | <f0>}}'))
         self.body.dot(g)
         g.edge(str(self.id) + ":<f0>", str(self.body.id))
-
-    def realize(self, arg_type_list: List[tuple]):
-        pass
 
     def subs(self):
         return chain(self.params, [self.body])
@@ -208,6 +204,14 @@ class FnCall(Expression):
 
     def subs(self):
         return self.args[:]
+
+    def arg_typecodes(self):
+        return [a['T'] for a in self.args]
+
+    def follow(self):
+        if self.refname not in self.scope or not isinstance(self.scope[self.refname], Function):
+            raise RuntimeError("Cannot find declaration for function: " + self.refname)
+        return self.scope[self.refname]
 
 
 class Operation(Expression):
@@ -369,6 +373,8 @@ class VarDecl(Expression):
         if not self.typeref: return None
         return self.typeref.typecode()
 
+    def follow(self):
+        return self.scope[self.name]
 
 class VarRef(Expression):
     '''
@@ -382,21 +388,16 @@ class VarRef(Expression):
         g.node(str(self.id), nohtml(f'{self.line}) var | {self.refname}'))
         _add_type_node(g, self)
 
+    def follow(self):
+        if self.refname not in self.scope or not isinstance(self.scope[self.refname], Variable):
+            raise RuntimeError("Cannot find declaration for variable: " + self.refname)
+        return self.scope[self.refname]
+
+
 Literals = {
     'INTEGER' : Integer,
     'FLOAT'   : Float,
 }
-
-
-def copy_subtree(copy_root: ASTNode):
-    parent = copy_root.parent
-    copy_root.parent = None
-    
-    retval = copy.deepcopy(copy_root)
-    retval.parent = parent
-    
-    copy_root.parent = parent
-    return retval
 
 
 def visualize_ast(root: ASTNode):

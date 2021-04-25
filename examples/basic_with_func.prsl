@@ -2,15 +2,15 @@ pipeline _1997 {
 
     def stdpos 
         proj: 
-        view:
+        view: 
         model:
-        pos: 
+        pos: vec4
         -> proj *' view *' model *' pos
 
-    gl_Position <- stdpos(u[projMatrix: mat4], 
+    gl_Position: <- stdpos(u[projMatrix: mat4], 
                           u[viewMatrix: mat4], 
                           u[modelMatrix: mat4],
-                          vec4(a[position: vec3 0], 1))
+                          a[position: vec4 0])
 
     f[f_color: 0] <-                     ; no type info needed, just an index
         v[v_color:] <-                   ; don't need an index on this one even
