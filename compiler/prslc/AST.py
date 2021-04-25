@@ -3,6 +3,9 @@ from graphviz import Digraph, nohtml
 import tempfile
 import os.path as path
 import subprocess
+import copy
+from itertools import chain
+
 
 _id_counter = -1
 
@@ -10,6 +13,7 @@ def _next_id():
     global _id_counter
     _id_counter += 1
     return _id_counter
+
 
 def _add_type_node(g: Digraph, this):
     if 'T' not in this: return
@@ -25,6 +29,7 @@ class ASTNode:
         self.line = line
         self.attr = {}
         self.parent = None
+        self.scope = None
 
     def dot(self, g: Digraph):
         return g
@@ -42,6 +47,15 @@ class ASTNode:
     def __contains__(self, k):
         return k in self.attr
 
+    def copy(self):
+        r = TU(self.line)
+        
+    def re_id(self):
+        self.id = _next_id()
+
+    def subs(self):
+        return []
+
 
 class TU(ASTNode):
     def __init__(self, line: int):
@@ -58,6 +72,14 @@ class TU(ASTNode):
             c.dot(g)
             g.edge(str(self.id), str(c.id))
 
+    def re_id(self):
+        super().re_id()
+        for g in self.globals:
+            g.re_id()
+    
+    def subs(self):
+        return self.globals[:]
+
 class Component(ASTNode):
     '''
     A non-realized set of definitions, declarations, and assignments.
@@ -73,9 +95,22 @@ class Component(ASTNode):
 
     def dot(self, g):
         g.node(str(self.id), nohtml(f'{self.line}) component | {self.name}'))
+        self.dot_items(g)
+
+    def dot_items(self, g):
+        #with g.subgraph(name = "cluster_" + self.scope.name, graph_attr = {'label' : self.scope.name}) as sg:
         for c in self.items:
             c.dot(g)
             g.edge(str(self.id), str(c.id))
+
+
+    def re_id(self):
+        super().re_id()
+        for c in self.items:
+            c.re_id()
+
+    def subs(self):
+        return self.items[:]
 
 class Pipeline(Component):
     '''
@@ -88,9 +123,7 @@ class Pipeline(Component):
 
     def dot(self, g):
         g.node(str(self.id), nohtml(f'{self.line}) pipeline | {self.name}'))
-        for c in self.items:
-            c.dot(g)
-            g.edge(str(self.id), str(c.id))
+        self.dot_items(g)
 
 
 class TypeRef(ASTNode):
@@ -113,7 +146,28 @@ class TypeRef(ASTNode):
     def typecode(self):
         return (self.name, self.array_spec)
 
+    def re_id(self):
+        super().re_id()
 
+
+class FnDef:
+    def __init__(self, name: str, line):
+        super().__init__(self, line)
+        self.name = name
+        self.params = []
+        self.body = None
+
+    def re_id(self):
+        super().re_id()
+        for p in self.params:
+            p.re_id()
+        if self.body: self.body.re_id()
+    
+    def realize(self, arg_type_list: List[tuple]):
+        pass
+
+    def subs(self):
+        chain(self.params, [self.body])
 
 class Expression(ASTNode):
     def __init__(self, line):
@@ -128,12 +182,21 @@ class FnCall(Expression):
         for a in self.args:
             a.parent = self
 
+    def re_id(self):
+        super().re_id()
+        for a in self.args:
+            a.re_id()
+
     def dot(self, g):
         g.node(str(self.id), nohtml(f'{self.line}) fncall | {self.refname} | <f0> (...)'))
         for a in self.args:
             a.dot(g)
             g.edge(f'{str(self.id)}:<f0>', str(a.id))
         _add_type_node(g, self)
+
+    def subs(self):
+        return self.args[:]
+
 
 class Operation(Expression):
     '''
@@ -153,10 +216,18 @@ class UnaryOp(Operation):
         self.operand = operand
         self.operand.parent = self
 
+    def re_id(self):
+        super().re_id()
+        self.operand.re_id()
+
+
     def dot(self, g):
         g.node(str(self.id), nohtml(f'{self.line}) {type(self).NAME}'))
         g.edge(str(self.id), str(self.operand.id))
         _add_type_node(g, self)
+
+    def subs(self):
+        return [self.operand]
 
 
 class BinaryOp(Operation):
@@ -170,7 +241,12 @@ class BinaryOp(Operation):
 
         self.right = right
         right.parent = self
-    
+
+    def re_id(self):
+        super().re_id()
+        self.left.re_id()
+        self.right.re_id()
+
     def dot(self, g):
         g.node(str(self.id), nohtml(f'<f0> | {self.line}) {type(self).NAME} | <f1>'))
         self.left.dot(g)
@@ -178,6 +254,9 @@ class BinaryOp(Operation):
         g.edge(f'{str(self.id)}:<f0>', str(self.left.id))
         g.edge(f'{str(self.id)}:<f1>', str(self.right.id))
         _add_type_node(g, self)
+
+    def subs(self):
+        return [self.left, self.right]
 
 def make_binop(opname: str):
     class Ret(BinaryOp):
@@ -262,12 +341,17 @@ class VarDecl(Expression):
         self.index: int = index
         pass
 
+    def re_id(self):
+        super().re_id()
+        if self.typeref: self.typeref.re_id()
+
     def dot(self, g):
         g.node(str(self.id), nohtml(f'{self.line}) vardecl | {self.stage or "*"} | {self.name} | <f0> {"T" if self.typeref else "?"} | {str(self.index or "?")}'))
         if self.typeref:
             self.typeref.dot(g)
             g.edge(f'{str(self.id)}:<f0>', str(self.typeref.id))
         _add_type_node(g, self)
+
 
 class VarRef(Expression):
     '''
@@ -287,12 +371,25 @@ Literals = {
 }
 
 
+def copy_subtree(copy_root: ASTNode):
+    parent = copy_root.parent
+    copy_root.parent = None
+    
+    retval = copy.deepcopy(copy_root)
+    retval.parent = parent
+    
+    copy_root.parent = parent
+    return retval
+
+
 def visualize_ast(root: ASTNode):
     '''
     Visualize an AST using DOT.
     '''
-    g = Digraph('g', node_attr = {'shape' : 'record', 'style' : 'filled'})
+    g = Digraph(node_attr = {'shape' : 'record', 'style' : 'filled'})
+    
     root.dot(g)
+    
     with tempfile.TemporaryDirectory() as workdir:
         fn = path.join(workdir, '_ast.png')
         g.render(filename = fn, format='png')

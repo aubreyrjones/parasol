@@ -91,6 +91,7 @@ if __name__ == '__main__' :
     import sys
     ast = parse_and_convert(open(sys.argv[1]).read())
 
+    Translate.push_scopes(ast)
     Translate.synthesize_types(ast)
     
 
