@@ -15,17 +15,30 @@ def _add_type_node(g: Digraph, this):
     if 'T' not in this: return
     typecode = this['T'] or ('?', None)
     nodeid = str(this.id) + "_T"
-    if typecode[1]:
-        g.node(nodeid, f'{typecode[0]}@{typecode[1]}', shape='ellipse')
-    else:
-        g.node(nodeid, f'{typecode[0]}', shape='ellipse')
+    g.node(nodeid, f'{typecode[0]}{"@" + str(typecode[1]) if typecode[1] else ""}', shape='ellipse', color='#e6eeff', fontsize='8')
     g.edge(nodeid, str(this.id))
+
+
+class Attr:
+    def __contains__(self, k):
+        return k in self.__dict__
+
+    def __getattr__(self, a):
+        try:
+            super().__getattr__(a)
+        except AttributeError:
+            return None
+
+    def __setattr__(self, k, v):
+        super().__setattr__(k, v)
+
 
 class ASTNode:
     def __init__(self, line: int = -1):
         self.id = _next_id()
         self.line = line
         self.attr = {}
+        self.a = Attr()
         self.parent = None
 
     def dot(self, g: Digraph):
