@@ -19,26 +19,11 @@ def _add_type_node(g: Digraph, this):
     g.edge(nodeid, str(this.id))
 
 
-class Attr:
-    def __contains__(self, k):
-        return k in self.__dict__
-
-    def __getattr__(self, a):
-        try:
-            super().__getattr__(a)
-        except AttributeError:
-            return None
-
-    def __setattr__(self, k, v):
-        super().__setattr__(k, v)
-
-
 class ASTNode:
     def __init__(self, line: int = -1):
         self.id = _next_id()
         self.line = line
         self.attr = {}
-        self.a = Attr()
         self.parent = None
 
     def dot(self, g: Digraph):

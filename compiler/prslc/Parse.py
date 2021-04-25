@@ -91,10 +91,7 @@ if __name__ == '__main__' :
     import sys
     ast = parse_and_convert(open(sys.argv[1]).read())
 
-    ast.a.blah = 'foo'
-    print(ast.a.blah)
-
     Translate.synthesize_types(ast)
     
 
-    #visualize_ast(ast)
+    visualize_ast(ast)

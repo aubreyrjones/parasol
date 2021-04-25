@@ -58,9 +58,9 @@ def synthesize_types(root):
     elif isinstance(root,  UnaryOp):
         synthesize_types(root.operand)
         root['T'] = root.operand['T']
-    elif isinstance(root, Gets):
-        if root.left['T'] and root.right['T'] and (root.left['T'] != root.right['T']):
-            raise RuntimeError('Type error: assignment operands are of different types. ' + str(root.left['T']) + " " + str(root.right['T']))
+    # elif isinstance(root, Gets):
+    #     if root.left['T'] and root.right['T'] and (root.left['T'] != root.right['T']):
+    #         raise RuntimeError('Type error: assignment operands are of different types. ' + str(root.left['T']) + " " + str(root.right['T']))
         
     elif isinstance(root,  BinaryOp):
         synthesize_types(root.left)
