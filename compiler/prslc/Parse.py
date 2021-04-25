@@ -99,6 +99,8 @@ if __name__ == '__main__' :
     import sys
     ast = parse_and_convert(open(sys.argv[1]).read())
 
+    print(",".join(map(str, Translate.postorder(ast))))
+
     Translate.push_scopes(ast)
     Translate.push_decls(ast)
 

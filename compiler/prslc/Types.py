@@ -46,6 +46,9 @@ def pack_func_type(param_list):
 
 
 class Variable:
+    '''
+    Variable metadata and perhaps a constant value.
+    '''
     def __init__(self, name, decl = None):
         self.name = name
         self.constant_value = None
@@ -82,6 +85,9 @@ class Variable:
 
 
 class Function:
+    '''
+    Holds all realizations of a particular functions.
+    '''
     def __init__(self, definition):
         self.name = definition.name
         self.definition = definition
@@ -101,3 +107,10 @@ class Function:
         return newreal
     
 
+class BuiltinFunction(Function):
+    '''
+    Represents a function whose actual definition is provided by some aspect
+    of the compiler or environment.
+    '''
+    def __init__(self, name, sigs):
+        pass

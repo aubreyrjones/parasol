@@ -2,11 +2,12 @@ from Types import Variable, Function
 
 
 class LexicalScope:
-    def __init__(self, name, owner, parent: 'LexicalScope' = None):
+    def __init__(self, name, owner, parent: 'LexicalScope' = None, shadowing = False):
         self.parent = parent
         self.name = name
         self.owner = owner
         self.locals = {}
+        self.shadowing = shadowing
     
     def __getitem__(self, k):
         if k in self.locals:
@@ -22,7 +23,14 @@ class LexicalScope:
         return self[k] is not None
 
     def declare_var(self, decl):
-        var = self[decl.name]
+        var = None
+
+        if self.shadowing:
+            if decl.name in self.locals:
+                var = self.locals[decl.name]
+        else:
+            var = self[decl.name]
+        
         if not var:
             self[decl.name] = Variable(decl.name, decl)
         else:

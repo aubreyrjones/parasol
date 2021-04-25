@@ -57,6 +57,14 @@ class ASTNode:
     def subs(self):
         return []
 
+    def defines_scope(self):
+        '''
+        Returns empty tuple if no scope is required. Returns
+        a Tuple[Boolean] if scope is required, with the value
+        indicating whether shadowing behavior is requested.
+        '''
+        return tuple()
+
 
 class TU(ASTNode):
     def __init__(self, line: int):
@@ -80,6 +88,9 @@ class TU(ASTNode):
     
     def subs(self):
         return self.globals[:]
+
+    def defines_scope(self):
+        return (True,)
 
 class Component(ASTNode):
     '''
@@ -111,6 +122,9 @@ class Component(ASTNode):
 
     def subs(self):
         return self.items[:]
+
+    def defines_scope(self):
+        return (True,)
 
 class Pipeline(Component):
     '''
@@ -189,6 +203,9 @@ class FnDef(ASTNode):
         if self.name not in self.scope or not isinstance(self.scope[self.name], Function):
             raise RuntimeError("Cannot find declaration for function: " + self.name)
         return self.scope[self.name]
+
+    def defines_scope(self):
+        return (True,)
 
 class Expression(ASTNode):
     def __init__(self, line):
