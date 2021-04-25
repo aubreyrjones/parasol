@@ -7,12 +7,14 @@ BINOP_TYPE_MAP = {}
 
 BINOP_TYPE_MAP['Mult'] = {
     same('int') : 'int',
-    same('float') : 'float',
+    same('float') : 'float'
+}
+
+BINOP_TYPE_MAP['MMult'] = {
     same('mat4') : 'mat4',
     
     ('mat4', 'vec4') : 'vec4'
 }
-
 
 def combine_binary(op: str, t1: tuple, t2: tuple) -> tuple:
     if t1[1] != t2[1]: # array spec must match, no wildcard for now

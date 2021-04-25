@@ -33,8 +33,9 @@ NOT_EQ        := !=
 PLUS          := +
 MINUS         := -
 MULT          := *
-DIV           := /
 DOT           := *.
+MMULT         := *'
+DIV           := /
 SWIZZLE       := .
 SEQUENCE      := ..
 NOT           := !
@@ -98,6 +99,7 @@ staged_vardecl(SV) ::= STAGEREF(s) naked_vardecl(v) RBRACKET.           { SV = _
 %left EQ NOT_EQ.
 %left PLUS MINUS.
 %left MULT DIV DOT.
+%right MMULT.
 %left SWIZZLE SEQUENCE.
 %right NOT.
 
@@ -116,6 +118,7 @@ arg_list(AL) ::= arg_list(AL1) COMMA expr(e).                           { AL = A
 expr(E) ::= expr(L) PLUS expr(R).                                       { E = _("Add", { L, R }, ~L); }
 expr(E) ::= expr(L) MINUS expr(R).                                      { E = _("Sub", { L, R }, ~L); }
 expr(E) ::= expr(L) MULT expr(R).                                       { E = _("Mult", { L, R }, ~L); }
+expr(E) ::= expr(L) MMULT expr(R).                                      { E = _("MMult", { L, R }, ~L); }
 expr(E) ::= expr(L) DIV expr(R).                                        { E = _("Div", { L, R }, ~L); }
 expr(E) ::= expr(L) DOT expr(R).                                        { E = _("Dot", { L, R }, ~L); }
 // expr(E) ::= expr(L) SEQUENCE expr(R).                                   {E = _("..", {L, R}, ~L);}

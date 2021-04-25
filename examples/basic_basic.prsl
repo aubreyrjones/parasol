@@ -1,7 +1,8 @@
 pipeline _1997 {
     gl_Position <-                       ; `gl_Position` is provided by the platform definition `v[gl_Position:vec3]`.
-        u[projMatrix: mat4] *            ; defines a uniform variable
-        u[viewMatrix: mat4] *            ; and another one
+        u[projMatrix: mat4] *'           ; defines a uniform variable
+        u[viewMatrix: mat4] *'           ; and another one
+        u[modelMatrix: mat4] *'          ; the trend continues
         vec4(                            ; we steal the constructor syntax from GLSL. It's fine.
             a[position: vec3 0], 1)      ; defines a vertex attribute with type _and_ index
 

@@ -278,7 +278,7 @@ def make_binop(opname: str):
     return Ret
 
 Binops = {}
-_binops = 'Gets Add Sub Mult Div Dot'.split()
+_binops = 'Gets Add Sub Mult MMult Div Dot'.split()
 for b in _binops:
     newbin = make_binop(b)
     Binops[b] = newbin
