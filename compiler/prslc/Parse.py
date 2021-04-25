@@ -80,13 +80,13 @@ def cast_ident(n) -> str:
     
 def cast_integer(n) -> int:
     if n is None: return None
-    if n.type != 'INTEGER': raise RuntimeError('Parse conversion error. Expected INTEGER type, got' + repr(n.type))
+    if n.type != 'INTEGER': raise RuntimeError('Parse conversion error. Expected INTEGER type, got ' + repr(n.type))
     
     return int(n.value)
 
 def cast_float(n) -> float:
     if n is None: return None
-    if n.type != 'FLOAT': raise RuntimeError('Parse conversion error. Expected FLOAT type, got' + repr(n.type))
+    if n.type != 'FLOAT': raise RuntimeError('Parse conversion error. Expected FLOAT type, got ' + repr(n.type))
     return float(n.value)
 
 def parse_and_convert(source: str) -> TU:

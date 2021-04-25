@@ -358,7 +358,7 @@ class VarDecl(Expression):
         if self.typeref: self.typeref.re_id()
 
     def dot(self, g):
-        g.node(str(self.id), nohtml(f'{self.line}) vardecl | {self.stage or "*"} | {self.name} | <f0> {"T" if self.typeref else "?"} | {str(self.index or "?")}'))
+        g.node(str(self.id), nohtml(f'{self.line}) vardecl | {self.stage or "*"} | {self.name} | <f0> {"T" if self.typeref else "?"} | {str("?" if self.index is None else self.index)}'))
         if self.typeref:
             self.typeref.dot(g)
             g.edge(f'{str(self.id)}:<f0>', str(self.typeref.id))

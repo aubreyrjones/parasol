@@ -3,12 +3,11 @@ pipeline _1997 {
         u[projMatrix: mat4] *'           ; defines a uniform variable
         u[viewMatrix: mat4] *'           ; and another one
         u[modelMatrix: mat4] *'          ; the trend continues
-        vec4(                            ; we steal the constructor syntax from GLSL. It's fine.
-            a[position: vec3 0], 1)      ; defines a vertex attribute with type _and_ index
+        a[position: vec4 0]              ; finally a vertex attribute
 
     f[f_color: 0] <-                     ; no type info needed, just an index
         v[v_color:] <-                   ; don't need an index on this one even
-            a[a_color: vec4]             ; I started by allowing repeated variable names
+            a[a_color: vec4 1]           ; I started by allowing repeated variable names
                                          ; in different scopes, but it was really slippery
                                          ; what meaning a variable name would actually have
 

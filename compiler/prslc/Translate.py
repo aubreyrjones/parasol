@@ -67,8 +67,6 @@ def synthesize_types(root):
     elif isinstance(root,  BinaryOp):
         synthesize_types(root.left)
         synthesize_types(root.right)
-        if root.left['T'] and root.right['T'] and (root.left['T'] != root.right['T']):
-            raise RuntimeError('Type error: operands are of different types. ' + str(root.left['T']) + " " + str(root.right['T']))
         
         opname = type(root).NAME
         # set our type
