@@ -11,6 +11,15 @@ def _next_id():
     _id_counter += 1
     return _id_counter
 
+def _add_type_node(g: Digraph, this):
+    if 'T' not in this: return
+    typecode = this['T'] or ('?', None)
+    nodeid = str(this.id) + "_T"
+    if typecode[1]:
+        g.node(nodeid, f'{typecode[0]}@{typecode[1]}', shape='ellipse')
+    else:
+        g.node(nodeid, f'{typecode[0]}', shape='ellipse')
+    g.edge(nodeid, str(this.id))
 
 class ASTNode:
     def __init__(self, line: int = -1):
@@ -21,6 +30,19 @@ class ASTNode:
 
     def dot(self, g: Digraph):
         return g
+    
+    def akeys(self):
+        return list(self.attr.keys())
+
+    def __setitem__(self, k, v):
+        self.attr[k] = v
+
+    def __getitem__(self, k):
+        if k not in self.attr: return None
+        return self.attr[k]
+
+    def __contains__(self, k):
+        return k in self.attr
 
 
 class TU(ASTNode):
@@ -88,7 +110,10 @@ class TypeRef(ASTNode):
             g.node(str(self.id), nohtml(f'{self.line}) typeref | {self.name} @ {str(self.array_spec)}'))
         else:
             g.node(str(self.id), nohtml(f'{self.line}) typeref | {self.name}'))
-        
+        _add_type_node(g, self)
+    
+    def typecode(self):
+        return (self.name, self.array_spec)
 
 
 
@@ -100,16 +125,17 @@ class Expression(ASTNode):
 class FnCall(Expression):
     def __init__(self, ref: str, args: List[Expression], line):
         super().__init__(line)
-        self.ref = ref
+        self.refname = ref
         self.args = args or []
         for a in self.args:
             a.parent = self
 
     def dot(self, g):
-        g.node(str(self.id), nohtml(f'{self.line}) fncall | {self.ref} | <f0> (...)'))
+        g.node(str(self.id), nohtml(f'{self.line}) fncall | {self.refname} | <f0> (...)'))
         for a in self.args:
             a.dot(g)
             g.edge(f'{str(self.id)}:<f0>', str(a.id))
+        _add_type_node(g, self)
 
 class Operation(Expression):
     '''
@@ -132,6 +158,7 @@ class UnaryOp(Operation):
     def dot(self, g):
         g.node(str(self.id), nohtml(f'{self.line}) {type(self).NAME}'))
         g.edge(str(self.id), str(self.operand.id))
+        _add_type_node(g, self)
 
 
 class BinaryOp(Operation):
@@ -152,6 +179,7 @@ class BinaryOp(Operation):
         self.right.dot(g)
         g.edge(f'{str(self.id)}:<f0>', str(self.left.id))
         g.edge(f'{str(self.id)}:<f1>', str(self.right.id))
+        _add_type_node(g, self)
 
 def make_binop(opname: str):
     class Ret(BinaryOp):
@@ -193,6 +221,7 @@ class Terminal(Expression):
 
     def dot(self, g):
         g.node(str(self.id), nohtml(f"{self.line}) Value | {self.value}"))
+        _add_type_node(g, self)
 
 
 class Number(Terminal):
@@ -209,6 +238,7 @@ class Integer(Number):
     '''
     def __init__(self, value: int, line):
         super().__init__(value, line)
+        self.attr['T'] = ('int', None)
 
 
 class Float(Number):
@@ -217,6 +247,7 @@ class Float(Number):
     '''
     def __init__(self, value: float, line):
         super().__init__(value, line)
+        self.attr['T'] = ('float', None)
 
 
 class VarDecl(Expression):
@@ -238,6 +269,7 @@ class VarDecl(Expression):
         if self.typeref:
             self.typeref.dot(g)
             g.edge(f'{str(self.id)}:<f0>', str(self.typeref.id))
+        _add_type_node(g, self)
 
 class VarRef(Expression):
     '''
@@ -245,10 +277,11 @@ class VarRef(Expression):
     '''
     def __init__(self, name: str, line):
         super().__init__(line)
-        self.ref = name
+        self.refname = name
 
     def dot(self, g):
-        g.node(str(self.id), nohtml(f'{self.line}) var | {self.ref}'))
+        g.node(str(self.id), nohtml(f'{self.line}) var | {self.refname}'))
+        _add_type_node(g, self)
 
 Literals = {
     'INTEGER' : Integer,

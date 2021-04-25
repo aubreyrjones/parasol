@@ -1,6 +1,8 @@
 import parasol_parser as parser
 from AST import *
 
+import Translate
+
 def convert_global_list(n):
     r = TU(n[0].line if len(n) else -1)
     for c in n:
@@ -88,4 +90,8 @@ def parse_and_convert(source: str) -> TU:
 if __name__ == '__main__' :
     import sys
     ast = parse_and_convert(open(sys.argv[1]).read())
+
+    Translate.synthesize_types(ast)
+    
+
     visualize_ast(ast)
