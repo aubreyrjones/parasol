@@ -30,6 +30,7 @@ def link_vardecl_types(root):
 
 def synth_call_type(fn_call):
     realfunc = fn_call.follow().realize(fn_call.arg_typecodes())
+    _map(synthesize_types, realfunc.params)
     synthesize_types(realfunc.body)
     realfunc['T'] = realfunc.body['T']
     fn_call['T'] = realfunc['T']

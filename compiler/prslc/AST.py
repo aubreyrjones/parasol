@@ -169,13 +169,26 @@ class FnDef(ASTNode):
     def param_rep(self):
         return " | ".join(map(lambda p: typestr(p.typecode()), self.params))
 
-    def dot(self, g):
+    def dot(self, g, dot_reals = True):
         g.node(str(self.id), nohtml(f'{{{self.line}) {self.name}| {{{self.param_rep()}}} | <f0>}}'))
         self.body.dot(g)
         g.edge(str(self.id) + ":<f0>", str(self.body.id))
+        if dot_reals:
+            with g.subgraph(name = "Cluster_" + self.name, graph_attr = {'label' : self.name}) as sg:
+                self.dot_reals(sg)
+
+    def dot_reals(self, g):
+        real = self.follow()
+        for r in real.reals.values():
+            r.dot(g, False)
 
     def subs(self):
         return chain(self.params, [self.body])
+
+    def follow(self):
+        if self.name not in self.scope or not isinstance(self.scope[self.name], Function):
+            raise RuntimeError("Cannot find declaration for function: " + self.name)
+        return self.scope[self.name]
 
 class Expression(ASTNode):
     def __init__(self, line):
