@@ -15,9 +15,11 @@ def _next_id():
 
 
 def _add_type_node(g: Digraph, this):
-    if 'T' not in this: return
-    typecode = this['T'] or ('?', None)
     nodeid = str(this.id) + "_T"
+    #if 'T' not in this: return
+    if not this['T']: return
+
+    typecode = this['T'] or ('?', None)
     g.node(nodeid, f'{typecode[0]}{"@" + str(typecode[1]) if typecode[1] else ""}', shape='ellipse', color='#e6eeff', fontsize='8')
     g.edge(nodeid, str(this.id))
 
@@ -65,6 +67,18 @@ class ASTNode:
         '''
         return tuple()
 
+    def nodestyle(self):
+        style = {}
+        if 'T' in self:
+            if self['T']:
+                style['style'] = 'filled'
+            else:
+                style['style'] = 'solid'
+        else:
+            style['style'] = 'solid'
+            style['color'] = 'red'
+
+        return style
 
 class TU(ASTNode):
     def __init__(self, line: int):
@@ -184,7 +198,8 @@ class FnDef(ASTNode):
         return " | ".join(map(lambda p: typestr(p.typecode()), self.params))
 
     def dot(self, g, dot_reals = True):
-        g.node(str(self.id), nohtml(f'{{{self.line}) {self.name}| {{{self.param_rep()}}} | <f0>}}'))
+        return_type_string = str(self['T']) if 'T' in self else ''
+        g.node(str(self.id), nohtml(f'{{{self.line}) {self.name}| {{{self.param_rep()}}} | <f0> {return_type_string}}}'), **self.nodestyle())
         self.body.dot(g)
         g.edge(str(self.id) + ":<f0>", str(self.body.id))
         if dot_reals:
@@ -226,7 +241,7 @@ class FnCall(Expression):
             a.re_id()
 
     def dot(self, g):
-        g.node(str(self.id), nohtml(f'{self.line}) fncall | {self.refname} | <f0> (...)'))
+        g.node(str(self.id), nohtml(f'{self.line}) fncall | {self.refname} | <f0> (...)'), **self.nodestyle())
         for a in self.args:
             a.dot(g)
             g.edge(f'{str(self.id)}:<f0>', str(a.id))
@@ -268,7 +283,7 @@ class UnaryOp(Operation):
 
 
     def dot(self, g):
-        g.node(str(self.id), nohtml(f'{self.line}) {type(self).NAME}'))
+        g.node(str(self.id), nohtml(f'{self.line}) {type(self).NAME}'), **self.nodestyle())
         g.edge(str(self.id), str(self.operand.id))
         _add_type_node(g, self)
 
@@ -294,7 +309,7 @@ class BinaryOp(Operation):
         self.right.re_id()
 
     def dot(self, g):
-        g.node(str(self.id), nohtml(f'<f0> | {self.line}) {type(self).NAME} | <f1>'))
+        g.node(str(self.id), nohtml(f'<f0> | {self.line}) {type(self).NAME} | <f1>'), **self.nodestyle())
         self.left.dot(g)
         self.right.dot(g)
         g.edge(f'{str(self.id)}:<f0>', str(self.left.id))
@@ -392,7 +407,7 @@ class VarDecl(Expression):
         if self.typeref: self.typeref.re_id()
 
     def dot(self, g):
-        g.node(str(self.id), nohtml(f'{self.line}) vardecl | {self.stage or "*"} | {self.name} | <f0> {"T" if self.typeref else "?"} | {str("?" if self.index is None else self.index)}'))
+        g.node(str(self.id), nohtml(f'{self.line}) vardecl | {self.stage or "*"} | {self.name} | <f0> {"T" if self.typeref else "?"} | {str("?" if self.index is None else self.index)}'), **self.nodestyle())
         if self.typeref:
             self.typeref.dot(g)
             g.edge(f'{str(self.id)}:<f0>', str(self.typeref.id))
@@ -415,7 +430,7 @@ class VarRef(Expression):
         self.refname = name
 
     def dot(self, g):
-        g.node(str(self.id), nohtml(f'{self.line}) var | {self.refname}'))
+        g.node(str(self.id), nohtml(f'{self.line}) var | {self.refname}'), **self.nodestyle())
         _add_type_node(g, self)
 
     def follow(self):

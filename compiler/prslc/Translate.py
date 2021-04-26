@@ -44,7 +44,7 @@ def synth_call_type(fn_call):
     Realize a function with the given parameters, and get its type.
     '''
     realfunc = fn_call.follow().realize(fn_call.arg_typecodes())
-    _map(synthesize_types, postorder(realfunc))
+    types_pass(realfunc)
     fn_call['T'] = realfunc['T']
 
 
@@ -91,9 +91,17 @@ def preorder(root):
         for i in preorder(c):
             yield i
 
+def scopes_pass(ast):
+    push_scopes(ast)
+
+def decls_pass(ast):
+    _map(push_decls, preorder(ast))
+
+def types_pass(ast):
+    _map(synthesize_types, postorder(ast))
+
 
 def do_passes(ast):
-    push_scopes(ast)
-    _map(push_decls, preorder(ast))
-    #synthesize_types(ast)
-    _map(synthesize_types, postorder(ast))
+    scopes_pass(ast)
+    decls_pass(ast)
+    types_pass(ast)

@@ -31,12 +31,6 @@ def combine_binary(op: str, t1: tuple, t2: tuple) -> tuple:
     return (opmap[combo], t1[1])
 
 
-def unpack_type(typestring: str) -> tuple:
-    if typestring == '?': return None
-    s = typestring.split(',')
-    if len(s) == 1: return (s[0], None)
-    return (s[0], int(s[1]))
-
 def pack_type(typecode: tuple) -> str:
     if typecode is None: return "?"
     return f'{typecode[0]}{"," + str(typecode[1]) if typecode[1] else ""}'
