@@ -3,7 +3,7 @@ pipeline _1997 {
     def stdpos 
         proj: 
         view: 
-        model:
+        model: mat4 
         pos: vec4
         -> proj *' view *' model *' pos
 

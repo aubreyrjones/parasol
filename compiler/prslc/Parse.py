@@ -1,5 +1,6 @@
 import parasol_parser as parser
 from AST import *
+from Util import _map
 
 import Translate
 
@@ -99,11 +100,6 @@ if __name__ == '__main__' :
     import sys
     ast = parse_and_convert(open(sys.argv[1]).read())
 
-    print(",".join(map(str, Translate.postorder(ast))))
-
-    Translate.push_scopes(ast)
-    Translate.push_decls(ast)
-
-    Translate.synthesize_types(ast)
+    Translate.do_passes(ast)
 
     visualize_ast(ast)

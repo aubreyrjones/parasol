@@ -27,7 +27,7 @@ def push_decls(root):
         root.scope.declare_var(root)
     elif isinstance(root, FnDef):
         root.scope.parent.define_fn(root)
-    _map(push_decls, root.subs())
+    #_map(push_decls, root.subs())
 
 
 def link_vardecl_types(root):
@@ -44,9 +44,7 @@ def synth_call_type(fn_call):
     Realize a function with the given parameters, and get its type.
     '''
     realfunc = fn_call.follow().realize(fn_call.arg_typecodes())
-    _map(synthesize_types, realfunc.params)
-    synthesize_types(realfunc.body)
-    realfunc['T'] = realfunc.body['T']
+    _map(synthesize_types, postorder(realfunc))
     fn_call['T'] = realfunc['T']
 
 
@@ -54,37 +52,30 @@ def synthesize_types(root):
     '''
     Depth-first deduction of types.
     '''
-    try:
-        if isinstance(root,  TypeRef): # a type root
-            root['T'] = root.typecode()
-        elif isinstance(root,  FnCall):
-            _map(synthesize_types, root.args)
-            synth_call_type(root)
-        elif isinstance(root,  UnaryOp):
-            synthesize_types(root.operand)
-            root['T'] = root.operand['T']
-        elif isinstance(root,  BinaryOp):
-            synthesize_types(root.left)
-            synthesize_types(root.right)
-
-            opname = type(root).NAME
-            # set our type
-            if isinstance(root, Gets):
-                root.left.follow().refine_type(root.right['T'])
-                root.left['T'] = root.right['T']
-                root['T'] = root.left['T']
-            elif root.left['T'] and root.right['T']:
-                root['T'] = Types.combine_binary(opname, root.left['T'], root.right['T'])
-            else:
-                root['T'] = None
-        elif isinstance(root,  VarDecl):
-            link_vardecl_types(root)
-        elif isinstance(root,  VarRef):
-            root['T'] = root.follow().type
+    if isinstance(root,  TypeRef): # a type root
+        root['T'] = root.typecode()
+    elif isinstance(root, FnDef):
+        if 'T' in root.body:
+            root['T'] = root.body['T']
+    elif isinstance(root,  FnCall):
+        synth_call_type(root)
+    elif isinstance(root,  UnaryOp):
+        root['T'] = root.operand['T']
+    elif isinstance(root,  BinaryOp):
+        opname = type(root).NAME
+        # set our type
+        if isinstance(root, Gets):
+            root.left.follow().refine_type(root.right['T'])
+            root.left['T'] = root.right['T']
+            root['T'] = root.left['T']
+        elif root.left['T'] and root.right['T']:
+            root['T'] = Types.combine_binary(opname, root.left['T'], root.right['T'])
         else:
-            _map(synthesize_types, root.subs())
-    except Exception as ex:
-        raise RuntimeError(f"Error deducing types for {type(root)} on line {root.line}. {str(ex)}.")
+            root['T'] = None
+    elif isinstance(root,  VarDecl):
+        link_vardecl_types(root)
+    elif isinstance(root,  VarRef):
+        root['T'] = root.follow().type
 
 
 def postorder(root):
@@ -92,3 +83,17 @@ def postorder(root):
         for i in postorder(c):
             yield i
     yield root
+
+
+def preorder(root):
+    yield root
+    for c in root.subs():
+        for i in preorder(c):
+            yield i
+
+
+def do_passes(ast):
+    push_scopes(ast)
+    _map(push_decls, preorder(ast))
+    #synthesize_types(ast)
+    _map(synthesize_types, postorder(ast))
